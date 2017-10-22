@@ -18,11 +18,13 @@ app.use(function(err, req, res, next){
 });
 
 // 静态文件
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 
 // 路由
 app.get('/home/cycle', index.cycle);
+app.get('/photos', index.photos);
+app.get('/photo/:category', index.photo);
 
 // 开启监听
 var server = app.listen(3000, 'localhost', function() {
