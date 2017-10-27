@@ -19,3 +19,7 @@ exports.photo = function(req, res) {
         }
     }
 }
+exports.caegories =  function(req, res) {
+    var result = jsondata.getdata('home_items.json');
+    res.json(result);
+}

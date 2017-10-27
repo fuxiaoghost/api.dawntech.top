@@ -25,6 +25,7 @@ app.use('/static', express.static(path.join(__dirname, 'public')));
 app.get('/home/cycle', index.cycle);
 app.get('/photos', index.photos);
 app.get('/photo/:category', index.photo);
+app.get('/home/categories', index.caegories);
 
 // 开启监听
 var server = app.listen(3000, 'localhost', function() {
