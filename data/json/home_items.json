@@ -4,8 +4,14 @@
             "category": "信手涂鸦",
             "items": [
                 {
-                    "url": "http://127.0.0.1:3000/static/images/home/home_cycle_3.jpg",
-                    "target": ""
+                    "url": "http://127.0.0.1:3000/static/images/knbrush/works/works0.jpg",
+                    "target": "/knbrush",
+                    "title": "留得残荷听雨声"
+                },
+                {
+                    "url": "http://127.0.0.1:3000/static/images/knbrush/works/works1.jpg",
+                    "target": "/knbrush",
+                    "title": "荷花"
                 }
             ]
         },
@@ -13,8 +19,19 @@
             "category": "手记",
             "items": [
                 {
-                    "url": "http://127.0.0.1:3000/static/images/home/home_cycle_3.jpg",
-                    "target": ""
+                    "url": "http://127.0.0.1:3000/static/images/note/works/works2.jpg",
+                    "target": "/note",
+                    "title": "梅花"
+                },
+                {
+                    "url": "http://127.0.0.1:3000/static/images/note/works/works3.jpg",
+                    "target": "/note",
+                    "title": "苹果"
+                },
+                {
+                    "url": "http://127.0.0.1:3000/static/images/note/works/works4.jpg",
+                    "target": "/note",
+                    "title": "荔枝"
                 }
             ]
         },

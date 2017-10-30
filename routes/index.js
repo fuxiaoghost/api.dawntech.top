@@ -23,3 +23,11 @@ exports.caegories =  function(req, res) {
     var result = jsondata.getdata('home_items.json');
     res.json(result);
 }
+exports.knbrush = function(req, res) {
+    var result = jsondata.getdata('knbrush.json');
+    res.json(result);
+}
+exports.note = function(req, res) {
+    var result = jsondata.getdata('note.json');
+    res.json(result);
+}
