@@ -28,6 +28,7 @@ app.get('/photo/:category', index.photo);
 app.get('/home/categories', index.caegories);
 app.get('/knbrush', index.knbrush);
 app.get('/note', index.note);
+app.get('/blogs', index.blogs);
 
 // 开启监听
 var server = app.listen(3000, 'localhost', function() {

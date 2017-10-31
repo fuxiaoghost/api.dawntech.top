@@ -37,3 +37,7 @@ exports.note = function(req, res) {
     var result = jsondata.getdata('note.json');
     res.json(result);
 }
+exports.blogs = function(req, res) {
+    var result = jsondata.getdata('blog.json');
+    res.json(result);
+}

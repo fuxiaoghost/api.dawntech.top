@@ -1,34 +1,34 @@
 {
     "items": [
         {
-            "url": "http://127.0.0.1:3000/static/images/home/home_cycle_s_0.jpg",
+            "url": "/api/static/images/home/home_cycle_s_0.jpg",
             "desc": "0",
-            "target": "http://127.0.0.1:3000/static/images/home/home_cycle_0.jpg"
+            "target": "/api/static/images/home/home_cycle_0.jpg"
         },
         {
-            "url": "http://127.0.0.1:3000/static/images/home/home_cycle_s_1.jpg",
+            "url": "/api/static/images/home/home_cycle_s_1.jpg",
             "desc": "1",
-            "target": "http://127.0.0.1:3000/static/images/home/home_cycle_1.jpg"
+            "target": "/api/static/images/home/home_cycle_1.jpg"
         },
         {
-            "url": "http://127.0.0.1:3000/static/images/home/home_cycle_s_2.jpg",
+            "url": "/api/static/images/home/home_cycle_s_2.jpg",
             "desc": "2",
-            "target": "http://127.0.0.1:3000/static/images/home/home_cycle_2.jpg"
+            "target": "/api/static/images/home/home_cycle_2.jpg"
         },
         {
-            "url": "http://127.0.0.1:3000/static/images/home/home_cycle_s_3.jpg",
+            "url": "/api/static/images/home/home_cycle_s_3.jpg",
             "desc": "3",
-            "target": "http://127.0.0.1:3000/static/images/home/home_cycle_3.jpg"
+            "target": "/api/static/images/home/home_cycle_3.jpg"
         },
         {
-            "url": "http://127.0.0.1:3000/static/images/home/home_cycle_s_4.jpg",
+            "url": "/api/static/images/home/home_cycle_s_4.jpg",
             "desc": "4",
-            "target": "http://127.0.0.1:3000/static/images/home/home_cycle_4.jpg"
+            "target": "/api/static/images/home/home_cycle_4.jpg"
         },
         {
-            "url": "http://127.0.0.1:3000/static/images/home/home_cycle_s_5.jpg",
+            "url": "/api/static/images/home/home_cycle_s_5.jpg",
             "desc": "5",
-            "target": "http://127.0.0.1:3000/static/images/home/home_cycle_5.jpg"
+            "target": "/api/static/images/home/home_cycle_5.jpg"
         }
     ]
 }
