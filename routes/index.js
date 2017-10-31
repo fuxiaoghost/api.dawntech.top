@@ -1,7 +1,13 @@
 var jsondata = require('../src/jsondata');
 exports.cycle = function(req, res) {
-    var result = jsondata.getdata('home_cycle.json');
-    res.json(result);
+    var isMobile = req.query.isMobile;
+    if (isMobile === 'true') {
+        var result = jsondata.getdata('home_cycle_m.json');
+        res.json(result);   
+    }else {
+        var result = jsondata.getdata('home_cycle.json');
+        res.json(result);
+    }
 }
 
 exports.photos = function(req, res) {
