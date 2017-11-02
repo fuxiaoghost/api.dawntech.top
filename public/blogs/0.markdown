@@ -1,0 +1,469 @@
+# 如何做一个简单的滤镜
+## 屏幕色彩
+首先要明确一点，我们要了解的是屏幕的色彩，是发光物体的颜色问题，而不是反光物体的颜色问题。
+
+* 发光物体颜色的产生是由于物体发出光线到达人的视网膜让人产生对颜色的感知，如灯、手机屏幕、电脑屏幕等
+* 反光物体的颜色产生是由于光线照射到物体表面经过物体反射后到达人眼视网膜从而产生对颜色的感知，几乎所有的可以物体都可以反射光线
+
+## RGB色彩模型
+RGB色彩模型是基于颜色的加法混色原理，从黑色不断叠加Red，Green，Blue的颜色，最终可以得到白色光，颜色在叠加的过程中越来越明亮。
+
+RGB的整数表达：
+* R: 0-255
+* G: 0-255
+* B: 0-255
+
+RGB的浮点数表达：
+* R: 0.0-1.0
+* G: 0.0-1.0
+* B: 0.0-1.0
+
+RGB的十六进制表达：
+* R: 00-ff
+* G: 00-ff
+* B: 00-ff
+
+RGB色彩模型对软件和硬件的实现是比较容易的，是对计算机比较友好的一种色彩空间，但是人却很难通过RGB的值来感知到具体是什么样的颜色
+
+![AdditiveColorMixiing.svg](http://metaimg.baichanghui.com/METADATA/557fb665-a7b8-44b5-9068-38b3fd180513)
+
+## HSV（HSB）色彩模型
+HSV(Hue色相, Saturation饱和度, Value明度)
+HSB(Hue色相, Saturation饱和度, Brightness亮度)
+HSV是一种将RGB色彩模型中的点在圆柱坐标系中的表示法。这个圆柱的中心轴取值为自底部的黑色到顶部的白色，绕这个轴的角度对应于色相(H)，到这个轴的距离对应于饱和度(S)，而沿着这个轴的高度对应于亮度(B)或者明度(V)
+* H: 0-360°
+* S: 0-100%
+* V: 0-100%
+
+![HSV_cone](http://metaimg.baichanghui.com/METADATA/859186de-cb5d-49e9-82ad-69e7af00825b)
+
+![Triangulo_HSV](http://metaimg.baichanghui.com/METADATA/aa2eee0e-7f98-4e33-936e-f25f4183ec2e)
+
+## 常用图片格式(像素图)
+* JPG/JPEG 图片以24位颜色存储单个位图。支持最高级别的压缩，不过，这种压缩是有损耗的
+* PNG-8 以8位深度作为颜色索引，最高支持2的8次方=256种颜色+1位alpha通道（透明或不透明）
+* PNG-24 以24位深度作为颜色索引，最高支持2的24次方=16777216（大约1600万），不支持透明，无损
+* PNG-32(PNG-24 + alpha) 在24位基础之上增加8位alpha索引，有柔和的透明过度效果，无损
+* GIF 图形以8位深度作为颜色索引，最高支持256色，无损，支持多图片合并动画
+
+## 滤镜
+滤镜通常用于相机镜头作为调色、添加效果之用。如UV镜、偏振镜、星光镜还有滤光镜，这些滤镜都是通过直接改变光线到达相机感光单元的方式和多少来产生不同的照片效果。后来滤镜被借用到绘图软件中，用于制作特殊效果的工具统称，如PS中的风格化、画笔描边、模糊、扭曲、锐化、视频、素描、纹理、像素化、渲染、艺术效果等。这些滤镜都是通过改变图片像素点的映射关系，从而改变图像的表达效果，把一张图片映射为另一张特殊效果的图片
+
+### 无效果（原始图片输出）
+*vertex shader*
+
+```
+attribute vec4 a_Position;
+attribute vec2 a_TexCoord;
+varying vec2 v_TexCoord;
+void main() {
+    gl_Position = a_Position;
+    v_TexCoord = a_TexCoord;
+}
+```
+*fragment shader*
+
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+void main() {
+    gl_FragColor = texture2D(u_Sampler, v_TexCoord);
+}
+```
+![normal](http://metaimg.baichanghui.com/METADATA/2ca614f8-48ff-4ba8-a9eb-e43deccd1fcc)
+### 图片去色（黑白）
+*去色公式*
+
+``` 
+gray = r * 0.299 + g * 0.587 + b * 0.114
+```
+这是个近似的经验公式，该经验公式主要是根据人眼中三种不同的感光细胞的感光强度比例分配的
+*fragment shader*
+
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+void main() {
+    vec4 color = texture2D(u_Sampler, v_TexCoord);
+    float value = color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
+    float r = value;
+    float g = value;
+    float b = value;
+    gl_FragColor = vec4(r, g, b, 1.0);
+}
+```
+![blackandwhite](http://metaimg.baichanghui.com/METADATA/7150b78a-0857-4baf-9999-d225f6be1e37)
+### 反色（颜色翻转）
+*反色公式*
+
+```
+r = 1.0 - r;
+g = 1.0 - g;
+b = 1.0 - b;
+```
+*fragment shader*
+
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+void main() {
+    vec4 color = texture2D(u_Sampler, v_TexCoord);
+    float r = 1.0 - color.r;
+    float g = 1.0 - color.g;
+    float b = 1.0 - color.b;
+    gl_FragColor = vec4(r, g, b, 1.0);
+}
+```
+![inverse](http://metaimg.baichanghui.com/METADATA/e776622b-2179-41d8-8af3-d7b78f541612)
+### 图片通道（色彩分离）
+
+*fragment shader*
+
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+void main() {
+    if(v_TexCoord.x < 0.49 && v_TexCoord.y > 0.51) {
+        gl_FragColor = vec4(vec3(texture2D(u_Sampler, v_TexCoord).r), 1.0);
+    }else if(v_TexCoord.x > 0.51 && v_TexCoord.y > 0.51){
+        gl_FragColor = vec4(vec3(texture2D(u_Sampler, v_TexCoord).g), 1.0);   
+    }else if(v_TexCoord.x < 0.49 && v_TexCoord.y < 0.49) {
+        gl_FragColor = vec4(vec3(texture2D(u_Sampler, v_TexCoord).b), 1.0);   
+    }else if(v_TexCoord.x > 0.51 && v_TexCoord.y < 0.49) {
+        gl_FragColor = texture2D(u_Sampler, v_TexCoord);
+    }else {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+}
+```
+![channel](http://metaimg.baichanghui.com/METADATA/04cfd30d-7896-4d37-837e-d18776c1dc20)
+### HSV色彩模型
+#### RGB到HSV的转换
+设 (r, g, b)分别是一个颜色的红、绿和蓝坐标，它们的值是在0到1之间的实数。设max等价于r, g和b中的最大者。设min等于这些值中的最小者。要找到在HSL空间中的 (h, s, v)值，这里的h ∈ [0, 360）度是角度的色相角，而s, v ∈ [0,1]是饱和度和亮度，计算为：
+
+![fc13b9d7fe908945256576c87e621ebf](http://metaimg.baichanghui.com/METADATA/249cad4c-6675-4fa1-8f4d-5df05acbd1da)
+![7407659ad9a6c04c59f1319955256c2d](http://metaimg.baichanghui.com/METADATA/d9a76557-a545-41a6-bab7-7eb018a7f996)
+
+![b0c2985a3df040fe9c91b9da83ba7dbf](http://metaimg.baichanghui.com/METADATA/78770138-2890-4043-95eb-40112696f0c6)
+
+
+#### HSV到RGB的转换
+给定在HSV中 (h, s, v)值定义的一个颜色，带有如上的h，和分别表示饱和度和明度的s和v变化于0到1之间，在RGB空间中对应的 (r, g, b)三原色可以计算为（R,G,B变化于0到1之间）：
+
+![1dbc1cd77e795e3be8910aa6eacd118f](http://metaimg.baichanghui.com/METADATA/266dc4a7-ed7f-47b1-9e63-ad42341a0ca4)
+
+![7acd62e94e6d43e0d06e2a0afb606c90](http://metaimg.baichanghui.com/METADATA/1e154b06-2154-4b8d-ba45-2813a956c3ef)
+
+![af329ff7ccc2d0224c6a708cbeff856c](http://metaimg.baichanghui.com/METADATA/cab6b42d-f6b0-42fd-af49-04c8b51670f6)
+
+![d4e0bad232cddc61bc3f94909c959969](http://metaimg.baichanghui.com/METADATA/91e5f6fb-e17c-4a7d-984c-7dac377c4f63)
+
+![80d0f7a60402e41cec728d700309c228](http://metaimg.baichanghui.com/METADATA/a68e5d92-f68f-4e78-8b11-d96fb0b018b0)
+
+![5423dd82c7416c1f98e52e2bf1c4585b](http://metaimg.baichanghui.com/METADATA/25606ff7-ed82-4ab6-8341-e2f09c8ab758)
+
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+uniform float u_0;
+
+vec3 rgb2hsv(vec3 rgb) {
+    float mi = min(min(rgb.r, rgb.g), rgb.b);
+    float mx = max(max(rgb.r, rgb.g), rgb.b);
+    float delta = mx - mi;
+    float v = mx;
+    float s = 0.0;
+    float h = 0.0;
+    if(mx != 0.0) {
+        s = delta/mx;
+    }else {
+        s = 0.0;
+        h = 0.0;
+        return vec3(h, s, v);
+    }
+    if(delta <= 0.0) {
+        return vec3(0, s, v);
+    }
+    if(rgb.r == mx) {
+        h = (rgb.g - rgb.b)/delta;
+    }else if(rgb.g == mx) {
+        h = 2.0 + (rgb.b - rgb.r)/delta;
+    }else {
+        h = 4.0 + (rgb.r - rgb.g)/delta;
+    }
+    h *= 60.0;
+    if(h < 0.0) {
+        h += 360.0;
+    }
+    return vec3(h, s, v);
+}
+
+vec3 hsv2rgb(vec3 hsv) {
+    float h = hsv.r;
+    float s = hsv.g;
+    float v = hsv.b;
+    int i = 0;
+    float f,p,q,t;
+    float r,g,b;
+    if(s == 0.0) {
+        // achromatic (grey)
+        r = v;
+        g = v;
+        b = v;
+        return vec3(r, g, b);
+    }
+        
+    h /= 60.0;                            // sector 0 to 5
+    i = int(floor(h));
+    f = h - float(i);                   // factorial part of h
+    p = v * (1.0 - s);
+    q = v * (1.0 - s * f);
+    t = v * (1.0 - s * (1.0 - f));
+        
+    if(i == 0) {
+        r = v;
+        g = t;
+        b = p;
+    }else if(i == 1){
+        r = q;
+        g = v;
+        b = p;
+    }else if(i == 2) {
+        r = p;
+        g = v;
+        b = t;
+    }else if(i == 3) {
+        r = p;
+        g = q;
+        b = v;
+    }else if(i == 4) {
+        r = t;
+        g = p;
+        b = v;
+    }else {
+        r = v;
+        g = p;
+        b = q;
+    }
+    return vec3(r, g, b);
+}
+
+void main() {
+     vec4 color = texture2D(u_Sampler, v_TexCoord);
+     vec3 hsvColor = rgb2hsv(color.rgb);
+    //  float h = clamp(hsvColor.r + u_0 * 180.0, 0.0, 360.0);
+     float s = clamp(hsvColor.g + u_0, 0.0, 0.8);
+     vec3 rgbColor = vec3(hsvColor.r, s, hsvColor.b);
+
+     gl_FragColor = vec4(hsv2rgb(rgbColor), 1.0);
+}
+```
+![hsv](http://metaimg.baichanghui.com/METADATA/29507dbe-5226-4d77-90e7-08e63558c7ce)
+### 白平衡
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+uniform float u_0;
+const vec3 warmFilter = vec3(0.93, 0.54, 0.0);
+
+void main() {
+    vec4 source = texture2D(u_Sampler, v_TexCoord);
+    vec3 rgb = source.rgb;
+    vec3 processed = vec3((rgb.r < 0.5 ? (2.0 * rgb.r * warmFilter.r) : (1.0 - 2.0 * (1.0 - rgb.r) * (1.0 - warmFilter.r))),
+                          (rgb.g < 0.5 ? (2.0 * rgb.g * warmFilter.g) : (1.0 - 2.0 * (1.0 - rgb.g) * (1.0 - warmFilter.g))),
+                          (rgb.b < 0.5 ? (2.0 * rgb.b * warmFilter.b) : (1.0 - 2.0 * (1.0 - rgb.b) * (1.0 - warmFilter.b))));
+    
+    gl_FragColor = vec4(mix(rgb, processed, u_0), source.a);
+}
+```
+![whiteblance](http://metaimg.baichanghui.com/METADATA/fe5aa69c-bb27-4cfc-8c59-085a931ee0c1)
+### 高斯模糊
+#### 一维高斯函数
+![WechatIMG44](http://metaimg.baichanghui.com/METADATA/d64e8df6-a45e-4d40-8e8a-888babfa5bf8)
+![WechatIMG45](http://metaimg.baichanghui.com/METADATA/dd1395ac-dbe5-4da3-93f4-bd032145d99c)
+#### 二纬高斯函数
+![WechatIMG46](http://metaimg.baichanghui.com/METADATA/ba10a3b1-3a3f-4f49-a158-9929f87a7dab)
+![WechatIMG47](http://metaimg.baichanghui.com/METADATA/8311d633-d7b7-49a7-9fc5-143e5b83aaad)
+
+```
+precision mediump float; 
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord; 
+
+float gaussian(float x, float y) {
+    float pi = 3.1415926;
+    float sigma = 0.4;
+    return (1.0/(2.0 * pi * sigma * sigma)) * exp(-(x * x + y * y)/(2.0 * sigma * sigma));
+}
+
+void main() {
+    const int radius = 10;
+    vec2 resolution = vec2(1024.0, 1024.0);
+    vec4 sum = vec4(0.0);
+    float gaussianSum = 0.0;
+    float pixelsizex = 1.0/resolution.x;
+    float pixelsizey = 1.0/resolution.y;
+
+    for(int i = -radius; i <= radius; i++) {
+        for(int j = -radius; j <= radius; j++) {
+            float x = float(i)/abs(float(radius));
+            float y = float(j)/abs(float(radius));
+            vec2 coord = vec2(v_TexCoord.x + float(i) * pixelsizex, v_TexCoord.y + float(j) * pixelsizey);
+            
+            // 处理边界值, 把已有的点拷贝到另一面的对应位置
+            float cx = coord.x;
+            float cy = coord.y;
+            if(coord.x < 0.0)
+                cx = -coord.x;
+            if(coord.x > 1.0)
+                cx = 1.0 - coord.x;
+            if(coord.y < 0.0)
+                cy = -coord.y;
+            if(coord.y > 1.0)
+                cy = 1.0 - coord.y;
+            // 颜色值
+            float gWeight = gaussian(x, y);
+            sum += texture2D(u_Sampler, vec2(cx, cy)) * gWeight;
+            // 计算高斯函数的概率总和
+            gaussianSum += gWeight;
+        }
+    }
+
+    
+    vec4 v_fragmentColor =  vec4(1.0, 1.0, 1.0, 1.0);
+    gl_FragColor = v_fragmentColor * sum/gaussianSum; 
+}
+```
+![blur](http://metaimg.baichanghui.com/METADATA/4e4e1191-6945-47a3-be7e-c055ecce39f8)
+### 综合美颜
+```
+precision mediump float;
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+
+float gaussian2D(float x, float y) {
+    float pi = 3.1415926;
+    float sigma = 0.4;
+    return (1.0 / (2.0 * pi * sigma * sigma)) * exp( - (x * x + y * y) / (2.0 * sigma * sigma));
+}
+
+float gaussian(float x) {
+    float pi = 3.1415926;
+    float sigma = 0.4;
+    return (1.0 / (sigma * sqrt(2.0 * pi))) * exp( - (x * x) / (2.0 * sigma * sigma));
+}
+
+float colorDistance(vec4 fcolor, vec4 tcolor) {
+    float value = sqrt((fcolor.r - tcolor.r) * (fcolor.r - tcolor.r) + (fcolor.g - tcolor.g) * (fcolor.g - tcolor.g) + (fcolor.b - tcolor.b) * (fcolor.b - tcolor.b));
+    return value / sqrt(1.0 + 1.0 + 1.0);
+}
+
+bool isSkin(vec4 color) {
+    // RGB转YCbCr
+    float Y = 0.257 * color.r * 255.0 + 0.564 * color.g * 255.0 + 0.098 * color.b * 255.0 + 16.0;
+    float Cb = -0.148 * color.r * 255.0 - 0.291 * color.g * 255.0 + 0.439 * color.b * 255.0 + 128.0;
+    float Cr = 0.439 * color.r * 255.0 - 0.368 * color.g * 255.0 - 0.071 * color.b * 255.0 + 128.0;
+    if (Cb > 77.0 && Cb < 127.0 && Cr > 133.0 && Cr < 173.0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+vec4 bilateralFilter() {
+    const int radius = 5;
+    vec2 resolution = vec2(1024.0, 1024.0);
+    vec4 sum = vec4(0.0);
+    float gaussianSum = 0.0;
+    float pixelsizex = 1.0 / resolution.x;
+    float pixelsizey = 1.0 / resolution.y;
+    for (int i = -radius; i <= radius; i++) {
+        for (int j = -radius; j <= radius; j++) {
+            vec2 coord = vec2(v_TexCoord.x + float(i) * pixelsizex, v_TexCoord.y + float(j) * pixelsizey);
+
+            // 处理边界值, 把已有的点拷贝到另一面的对应位置
+            float cx = coord.x;
+            float cy = coord.y;
+            if (coord.x < 0.0) cx = -coord.x;
+            if (coord.x > 1.0) cx = 1.0 - coord.x;
+            if (coord.y < 0.0) cy = -coord.y;
+            if (coord.y > 1.0) cy = 1.0 - coord.y;
+
+            // 像素距离的高斯数值
+            float x = float(i) / abs(float(radius));
+            float y = float(j) / abs(float(radius));
+            float gWeight = gaussian2D(x, y);
+
+            // 像素相似度的高斯数值
+            vec4 cColor = texture2D(u_Sampler, v_TexCoord);
+            vec4 fColor = texture2D(u_Sampler, vec2(cx, cy));
+            float v = colorDistance(fColor, cColor);
+            float bWeight = gaussian(v);
+
+            // 颜色值
+            sum += texture2D(u_Sampler, vec2(cx, cy)) * (bWeight * gWeight);
+            // 计算高斯函数的概率总和
+            gaussianSum += (bWeight * gWeight);
+        }
+    }
+
+    vec4 v_fragmentColor = vec4(1.0, 1.0, 1.0, 1.0);
+    return v_fragmentColor * sum / gaussianSum;
+}
+
+vec4 whiteningFilter(vec4 source) {
+    // http://blog.csdn.NET/maozefa/article/details/4493395
+    vec3 whiteFilter = vec3(0.2, 0.2, 0.2);   //save for light whiting
+    vec3 warmFilter = vec3(0.0, 0.78, 0.92);
+ 
+    float y = source.r * 0.299 + source.g * 0.587 + source.b * 0.114;
+    float cr = (source.r - y) * 0.713 + 0.5;
+    float cb = (source.b - y) * 0.564 + 0.5;
+    
+    float gray = y * 255.0;
+    // gray = gray + (gray - 128.0)*cv + 0.5;
+    gray = gray / (0.896865160897715 + 0.0032021590610318*gray - 0.0442923728433528*sqrt(gray));
+    gray = gray<256.0? gray:255.0;
+    y = gray / 255.0;
+
+    
+    vec3 rgb;
+    rgb.r = y + 1.403*(cr - 0.5);
+    rgb.g = y - 0.344*(cb - 0.5) - 0.714*(cr - 0.5);
+    rgb.b = y + 1.773*(cb - 0.5);
+    
+    vec3 whiteprocessed = vec3((rgb.r < 0.5 ? (2.0 * rgb.r * whiteFilter.r) : (1.0 - 2.0 * (1.0 - rgb.r) * (1.0 - whiteFilter.r))), //adjusting temperature
+                               (rgb.g < 0.5 ? (2.0 * rgb.g * whiteFilter.g) : (1.0 - 2.0 * (1.0 - rgb.g) * (1.0 - whiteFilter.g))),
+                               (rgb.b < 0.5 ? (2.0 * rgb.b * whiteFilter.b) : (1.0 - 2.0 * (1.0 - rgb.b) * (1.0 - whiteFilter.b))));
+
+                               
+    vec3 balancewhite = mix(rgb, whiteprocessed, -0.4756);
+    
+    
+    vec3 temperprocessed = vec3((balancewhite.r < 0.5 ? (2.0 * balancewhite.r * warmFilter.r) : (1.0 - 2.0 * (1.0 - balancewhite.r) * (1.0 - warmFilter.r))),
+                                (balancewhite.g < 0.5 ? (2.0 * balancewhite.g * warmFilter.g) : (1.0 - 2.0 * (1.0 - balancewhite.g) * (1.0 - warmFilter.g))),
+                                (balancewhite.b < 0.5 ? (2.0 * balancewhite.b * warmFilter.b) : (1.0 - 2.0 * (1.0 - balancewhite.b) * (1.0 - warmFilter.b))));
+                                
+    vec3 balanceresult = mix(balancewhite, temperprocessed, 0.1);
+    
+    return vec4(balanceresult, source.a);
+}
+
+void main() {
+    vec4 src = texture2D(u_Sampler, v_TexCoord);
+    vec4 target;
+    if(isSkin(src)) {
+        target = bilateralFilter();
+    }else {
+        target = src;
+    }
+    gl_FragColor = whiteningFilter(target);
+}
+```
+![bilateral](http://metaimg.baichanghui.com/METADATA/af8879ad-f9ef-4ba1-a58f-b781a9725c9f)

@@ -1,0 +1,224 @@
+# 如何画出一条优雅的曲线
+## 几个基本概念
+### 分辨率
+分辨率就是指在一定大小的屏幕上面由多少的像素形成的图像
+比如 1280*720 就表示横排可以显示1280个像素，坚排可以显示720个像素，就是说，在这个显示器上面总共可以显示921600个像素
+### DPI(dots per inch)
+* 每英寸的像素个数
+* 72dpi就是每英寸距离能显示72个像素点，DPI越高图像显示越精细
+
+### 像素密度&像素总数
+* 像素密度：单位面积内的像素数量除以单位面积
+* 像素总数：图片中所含像素数量
+
+### 显卡的帧率(FPS)&显示器刷新率&鼠标采样率
+* 显卡的帧率：显卡的性能指标之一，1秒内显卡能处理的静态图像数量，一幅静态图像就称为1帧
+* 显示器刷新率：显示器的性能指标之一，1秒内显示器的刷新次数
+* 鼠标采样率：操作系统确认鼠标位置的速率，一般情况USB为120次/秒，PS2接口为60次/秒
+* 用户感受到的刷新率=MIN(显卡的帧率,显示器刷新率)
+
+## 如何画一条直线
+### 像素级别绘制
+* P0(x0,y0)  P1(x1,y1)  
+* k = dy/dx = (y1 - y0) / (x1 - x0)
+* y = kx+b
+![像素填充](https://webimg.baichanghui.com/reecho/articles/bezierline_0.png)
+
+### 多重采样抗锯齿MSAA
+MSAA技术会针对于要绘制的每个像素点进行多个采样，这些采样点多数情况下会在我们要绘制的形状的内部和外部，少数情况下会落在形状的边缘。每个像素点的颜色会通过采样的结果进行混合来最终获得。
+![多重采样](https://webimg.baichanghui.com/reecho/articles/bezierline_1.png)
+### 高层抽象
+绘制一条直线的必要条件
+
+* 起始点位置
+* 结束点位置
+* 线宽
+* y= kx+b
+
+#### 二分法填充直线
+![二分填充直线](https://webimg.baichanghui.com/reecho/articles/bezierline_2.png)
+
+```
+function fillGapOfPoints(points, gap) {
+	var i = 0;
+	while (i < points.length - 1) {
+		var distance = points[i].distanceTo(points[i + 1]);
+		if (distance > gap) {
+			points.splice(i + 1, 0, points[i].middleOf(points[i + 1]));
+		} else {
+			i++;
+		}
+	}
+}
+```
+#### 局部MASS
+![多重采样](https://webimg.baichanghui.com/reecho/articles/bezierline_3.png)
+
+```
+VertexShader
+float pointSize = u_PointSize;
+float paddedPointSize = pointSize + 1.5;
+float invPaddedPointSize = 1.0/paddedPointSize;
+gl_PointSize = paddedPointSize;
+float radiusTextureSpace = 0.5 * (pointSize / paddedPointSize) + invPaddedPointSize * 0.5;
+float r = 2.0 * radiusTextureSpace;' +
+float r2 =  4.0 * radiusTextureSpace * radiusTextureSpace;
+float tSize = pointSize * 0.5;
+outputParams = vec3(r, r2, tSize);
+
+FragmentShader
+vec2 UV = 2.0 * (gl_PointCoord - vec2(0.5, 0.5));
+float dotUV = dot(UV,UV);
+float distanceToCenterSquared = outputParams.r - dotUV;
+bool inside = distanceToCenterSquared >= 0.0;
+float distanceToCircleBoundary = outputParams.g - sqrt(dotUV);
+float alpha = clamp(distanceToCircleBoundary * outputParams.b, 0.0, 1.0);
+float finalAlpha = mix(0.0, alpha, float(inside));
+```
+## 如何画一条曲线
+### 记录鼠标移动轨迹
+
+![记录鼠标移动轨迹](https://webimg.baichanghui.com/reecho/articles/bezierline_4.png)
+
+![记录鼠标移动轨迹](https://webimg.baichanghui.com/reecho/articles/bezierline_5.png)
+### 填充移动轨迹
+![二分填充](https://webimg.baichanghui.com/reecho/articles/bezierline_2.png)
+
+![填充移动轨迹](https://webimg.baichanghui.com/reecho/articles/bezierline_6.png)
+
+### 几个问题
+* 手(鼠标)抖动带来的笔迹不规整
+* 线性填充引起的笔迹断折，尤其在拐角处
+
+### 抖动控制算法
+* MA(移动平均数)：MAn = 0.25On-1+0.25On+1+ 0.5On
+* EMA(指数平均数)：EMAn = 2kOn + (n-1)kEMAn-1; k = 1/(n + 1),n = 2
+* EMA展开：X2=(2/3)O2 + (1/3)O1 ; X3=(1/2)O3+(1/3)O2+(1/6)X1
+
+```
+for (var i = this.pointIndex; i < this.originalPoints.length; i++) {
+	var point = new Point(0, 0);
+            
+	if(i > 0 && i < this.originalPoints.length - 1) {
+		// 移动平均值
+		let x = this.originalPoints[i].x * 0.5 + this.originalPoints[i - 1].x * 0.25 + this.originalPoints[i + 1].x * 0.25;
+		let y = this.originalPoints[i].y * 0.5 + this.originalPoints[i - 1].y * 0.25 + this.originalPoints[i + 1].y * 0.25;
+		point = new Point(x, y);
+	}else {
+		point = new Point(this.originalPoints[i].x, this.originalPoints[i].y);
+	}
+            
+	// EMA
+	if(i != 0) {
+		let n = 2.0;
+		let k = 1.0/(n + 1.0);
+                
+		let x = (2 * point.x + (n - 1) * this.points[i - 1].x) * k;
+		let y = (2 * point.y + (n - 1) * this.points[i - 1].y) * k;
+		point = new Point(x, y);
+	}
+	this.points.push(point);
+}
+```
+![抖动控制](https://webimg.baichanghui.com/reecho/articles/bezierline_7.png)
+
+![抖动控制](https://webimg.baichanghui.com/reecho/articles/bezierline_8.png)
+
+### 笔迹平滑算法
+光滑曲线：若函数f(x)在区间(a,b)内具有一阶连续导数，则其图形为一条处处有切线的曲线，且切线随切点的移动而连续转动，这样的曲线称为光滑曲线
+
+简化定义：连续无断点、无奇点
+
+插值(interpolation)：在离散数据的基础上补插连续函数，使得这条连续曲线通过全部给定的离散数据点
+
+### 线性插值
+离散点：P0(0,0) P1(1,1) P2(2,0) P3(3,2)
+
+线性插值结果：y = ax + b, a = 0.5, b = 0
+
+![线性插值](https://webimg.baichanghui.com/reecho/articles/bezierline_9.png)
+
+### 多项式插值
+离散点：P0(0,0) P1(1,1) P2(2,0) P3(3,2)
+
+多项式插值结果：
+y = a0+a1x+a2x2+a3x3+a4x4+a5x5
+a0=4.2367e-8, a1=0.9094, a2=0.5267, a3=-0.0386, a4=-0.5688, a5=0.1714
+
+![多项式插值](https://webimg.baichanghui.com/reecho/articles/bezierline_10.png)
+
+### Bezier曲线
+二次Bezier曲线方程：
+Bt=(1-t)2P0+2t(1-t)P1+t2P2, t∈[0,1]
+
+![二阶Bezier曲线](https://upload.wikimedia.org/wikipedia/commons/3/3d/Bézier_2_big.gif)
+
+三次Bezier曲线方程：
+Bt=(1-t)3P0+3t(1-t)2P1+3t2(1-t)P2+t3P3, t∈[0,1]
+
+![三阶Bezier曲线](https://upload.wikimedia.org/wikipedia/commons/d/db/Bézier_3_big.gif)
+
+### Bezier曲线优点
+* 形状灵活：可以通过调整控制点改变曲线形状
+* 良好的几何特性：曲线穿过两个控制顶点P0,P1
+* 易拼接：只要保证拼接的两条曲线的顶点处切线斜率一致即可拼接
+
+### 降阶的多项式插值
+#### Bezier曲线插值拼接
+![拼接Bezier曲线](https://webimg.baichanghui.com/reecho/articles/bezierline_11.png)
+
+第一条Bezier曲线：P1,C0,C1,P2
+
+第二条Bezier曲线：P2,C3,C4,P3
+
+C1P2与P2C3平行
+
+### 如何确定控制点位置
+#### 找到每条边的中点A0,A1
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_12.png)
+#### 找到点B0使得L1/L2=d1/d2
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_13.png)
+#### 平移d1,d2使得B0到顶点位置
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_14.png)
+#### 控制点生成结果
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_15.png)
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_16.png)
+### Bezier曲线绘制
+三次Bezier曲线方程：
+Bt=(1-t)3P0+3t(1-t)2P1+3t2(1-t)P2+t3P3, t∈[0,1]
+
+笛卡尔坐标下的函数表达：
+
+```
+y(t) {
+	let a = ((1 - t) * (1 - t) * (1 - t)) * this.p0.y;
+	let b = 3 * ((1 - t) * (1 - t)) * t * this.p1.y;
+	let c = 3 * (1 - t) * (t * t) * this.p2.y;
+	let d = (t * t * t) * this.p3.y;
+	return a + b + c + d;
+}
+
+x(t) {
+	let a = ((1 - t) * (1 - t) * (1 - t)) * this.p0.x;
+	let b = 3 * ((1 - t) * (1 - t)) * t * this.p1.x;
+	let c = 3 * (1 - t) * (t * t) * this.p2.x;
+	let d = (t * t * t) * this.p3.x;
+	return a + b + c + d;
+}
+```
+### Bezier曲线绘制动态效果
+![三阶Bezier曲线](https://upload.wikimedia.org/wikipedia/commons/d/db/Bézier_3_big.gif)
+### 最终的曲线
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_17.png)
+### 曲线绘制流程
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_18.png)
+### 应用
+![控制点确定](https://webimg.baichanghui.com/reecho/articles/bezierline_19.png)
+
+
+
+
+
+
+
+

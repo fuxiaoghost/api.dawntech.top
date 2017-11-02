@@ -4,85 +4,85 @@
             "title": "张北草原",
             "category": "zhangbei",
             "date": "2017/9/16",
-            "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/cover.jpg",
+            "url": "/api/static/images/photos/zhangbei/cover.jpg",
             "photos": [
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_0.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_0.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/8.0 快门: 1/400s 焦距: 40mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_1.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_1.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/8.0 快门: 1/400s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_2.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_2.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/8.0 快门: 1/640s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_3.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_3.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/8.0 快门: 1/400s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_4.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_4.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/8.0 快门: 1/400s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_5.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_5.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/4.0 快门: 1/30s 焦距: 17mm 感光: 500"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_6.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_6.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/4.0 快门: 1/30s 焦距: 17mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_7.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_7.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/8.0 快门: 1/8s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_8.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_8.jpg",
                     "camera": "Canon EOS 6D / EF17-40mm f/4L USM",
                     "exif": "光圈: F/4.0 快门: 1/60s 焦距: 24mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_9.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_9.jpg",
                     "camera": "Canon EOS 6D / EF24-105mm f/4L IS USM",
                     "exif": "光圈: F/8.0 快门: 1/40s 焦距: 28mm 感光: 160"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_10.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_10.jpg",
                     "camera": "Canon EOS 6D / EF24-105mm f/4L IS USM",
                     "exif": "光圈: F/4.0 快门: 1/500s 焦距: 88mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_11.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_11.jpg",
                     "camera": "Canon EOS 6D / EF50mm f/1.8 STM",
                     "exif": "光圈: F/4.0 快门: 1/800s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_12.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_12.jpg",
                     "camera": "Canon EOS 6D / EF50mm f/1.8 STM",
                     "exif": "光圈: F/3.2 快门: 1/1250s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_13.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_13.jpg",
                     "camera": "Canon EOS 6D / EF50mm f/1.8 STM",
                     "exif": "光圈: F/1.8 快门: 1/3200s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_14.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_14.jpg",
                     "camera": "Canon EOS 6D / EF50mm f/1.8 STM",
                     "exif": "光圈: F/2.0 快门: 1/4000s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/zhangbei/zhangbei_15.jpg",
+                    "url": "/api/static/images/photos/zhangbei/zhangbei_15.jpg",
                     "camera": "Canon EOS 6D / EF50mm f/1.8 STM",
                     "exif": "光圈: F/1.8 快门: 1/200s 焦距: 50mm 感光: 100"
                 }
@@ -92,120 +92,120 @@
             "title": "烟花三月下扬州",
             "category": "yangzhou",
             "date": "2015/5/9",
-            "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/cover.jpg",
+            "url": "/api/static/images/photos/yangzhou/cover.jpg",
             "photos": [
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_0.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_0.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/5.6 快门: 1/400s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_1.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_1.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/3.2 快门: 1/20s 焦距: 17mm 感光: 640"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_2.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_2.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/2000s 焦距: 50mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_3.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_3.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/250s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_4.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_4.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/5.6 快门: 1/40s 焦距: 17mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_5.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_5.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/100s 焦距: 17mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_6.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_6.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/250s 焦距: 17mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_7.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_7.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/5.6 快门: 1/100s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_8.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_8.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/5.6 快门: 1/60s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_9.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_9.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/5.6 快门: 1/6s 焦距: 17mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_10.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_10.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/5.6 快门: 1/320s 焦距: 17mm 感光: 400"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_11.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_11.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/3.2 快门: 1/1600s 焦距: 47mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_12.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_12.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/6.3 快门: 1/40s 焦距: 30mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_13.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_13.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/3.2 快门: 1/200s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_14.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_14.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/250s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_15.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_15.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/8.0 快门: 1/400s 焦距: 17mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_16.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_16.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/400s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_17.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_17.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/400s 焦距: 40mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_18.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_18.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/8.0 快门: 1/250s 焦距: 29mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_19.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_19.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/200s 焦距: 37mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_20.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_20.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/1000s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_21.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_21.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/4.0 快门: 1/1600s 焦距: 50mm 感光: 100"
                 },
                 {
-                    "url": "http://127.0.0.1:3000/static/images/photos/yangzhou/yangzhou_22.jpg",
+                    "url": "/api/static/images/photos/yangzhou/yangzhou_22.jpg",
                     "camera": "Canon EOS 40D / Tanron 17-50mm",
                     "exif": "光圈: F/8.0 快门: 1/125s 焦距: 17mm 感光: 100"
                 }
@@ -215,192 +215,192 @@
             "title": "乌兰布统",
             "category": "wulanbutong",
             "date": "2014/9/6",
-            "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/cover.jpg",
+            "url": "/api/static/images/photos/wulanbutong/cover.jpg",
             "photos": [
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_0.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_0.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_1.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_1.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_2.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_2.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_3.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_3.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_4.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_4.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_5.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_5.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_6.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_6.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_7.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_7.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_8.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_8.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_9.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_9.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_10.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_10.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_11.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_11.jpg",
                     "camear": ""
                 }
                 ,{
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_12.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_12.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_13.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_13.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_14.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_14.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_15.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_15.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_16.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_16.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_17.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_17.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_18.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_18.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_19.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_19.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_20.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_20.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_21.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_21.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_22.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_22.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_23.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_23.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_24.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_24.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_25.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_25.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_26.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_26.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_27.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_27.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_28.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_28.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_29.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_29.jpg",
                     "camear": ""
                 },
                 {
                     "title": "",
                     "date": "",
-                    "url": "http://127.0.0.1:3000/static/images/photos/wulanbutong/wulanbutong_30.jpg",
+                    "url": "/api/static/images/photos/wulanbutong/wulanbutong_30.jpg",
                     "camear": ""
                 }
             ]
@@ -409,7 +409,7 @@
             "title": "苏梅岛",
             "category": "samui",
             "date": "2016/4/1",
-            "url": "http://127.0.0.1:3000/static/images/photos/samui/cover.jpg",
+            "url": "/api/static/images/photos/samui/cover.jpg",
             "photos": [
                 {
                     "title": "",
@@ -423,7 +423,7 @@
             "title": "郊野",
             "category": "jiaoye",
             "date": "2016/11/6",
-            "url": "http://127.0.0.1:3000/static/images/photos/jiaoye/cover.jpg",
+            "url": "/api/static/images/photos/jiaoye/cover.jpg",
             "photos": [
                 {
                     "title": "",
@@ -437,7 +437,7 @@
             "title": "箭扣",
             "category": "jiankou",
             "date": "2014/4/5",
-            "url": "http://127.0.0.1:3000/static/images/photos/jiankou/cover.jpg",
+            "url": "/api/static/images/photos/jiankou/cover.jpg",
             "photos": [
                 {
                     "title": "",

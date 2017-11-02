@@ -1,7 +1,13 @@
 var jsondata = require('../src/jsondata');
 exports.cycle = function(req, res) {
-    var result = jsondata.getdata('home_cycle.json');
-    res.json(result);
+    var isMobile = req.query.isMobile;
+    if (isMobile === 'true') {
+        var result = jsondata.getdata('home_cycle_m.json');
+        res.json(result);   
+    }else {
+        var result = jsondata.getdata('home_cycle.json');
+        res.json(result);
+    }
 }
 
 exports.photos = function(req, res) {
@@ -18,4 +24,20 @@ exports.photo = function(req, res) {
             break;
         }
     }
+}
+exports.caegories =  function(req, res) {
+    var result = jsondata.getdata('home_items.json');
+    res.json(result);
+}
+exports.knbrush = function(req, res) {
+    var result = jsondata.getdata('knbrush.json');
+    res.json(result);
+}
+exports.note = function(req, res) {
+    var result = jsondata.getdata('note.json');
+    res.json(result);
+}
+exports.blogs = function(req, res) {
+    var result = jsondata.getdata('blog.json');
+    res.json(result);
 }
