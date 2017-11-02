@@ -27,7 +27,7 @@ app.get('/photos', index.photos);
 app.get('/photo/:category', index.photo);
 
 // 开启监听
-var server = app.listen(3000, 'localhost', function() {
+var server = app.listen(3000, 'api.dawntech.top', function() {
     var host = server.address().address;
     var port = server.address().port;
 
