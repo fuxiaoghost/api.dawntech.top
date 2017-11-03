@@ -304,8 +304,14 @@ var substr = 'ab'.substr(-1) === 'b'
 
 var jsondata = __webpack_require__(6);
 exports.cycle = function(req, res) {
-    var result = jsondata.getdata('home_cycle.json');
-    res.json(result);
+    var isMobile = req.query.isMobile;
+    if (isMobile === 'true') {
+        var result = jsondata.getdata('home_cycle_m.json');
+        res.json(result);   
+    }else {
+        var result = jsondata.getdata('home_cycle.json');
+        res.json(result);
+    }
 }
 
 exports.photos = function(req, res) {
@@ -325,6 +331,18 @@ exports.photo = function(req, res) {
 }
 exports.caegories =  function(req, res) {
     var result = jsondata.getdata('home_items.json');
+    res.json(result);
+}
+exports.knbrush = function(req, res) {
+    var result = jsondata.getdata('knbrush.json');
+    res.json(result);
+}
+exports.note = function(req, res) {
+    var result = jsondata.getdata('note.json');
+    res.json(result);
+}
+exports.blogs = function(req, res) {
+    var result = jsondata.getdata('blog.json');
     res.json(result);
 }
 
@@ -372,9 +390,12 @@ app.get('/home/cycle', index.cycle);
 app.get('/photos', index.photos);
 app.get('/photo/:category', index.photo);
 app.get('/home/categories', index.caegories);
+app.get('/knbrush', index.knbrush);
+app.get('/note', index.note);
+app.get('/blogs', index.blogs);
 
 // 开启监听
-var server = app.listen(3000, 'localhost', function() {
+var server = app.listen(3000, '172.17.210.194', function() {
     var host = server.address().address;
     var port = server.address().port;
 
@@ -576,15 +597,16 @@ process.umask = function() { return 0; };
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var path = __webpack_require__(0);
+/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(0);
 var fs = __webpack_require__(7);
 module.exports = {
     getdata: function(file) {
-        var jsonfile = path.resolve('./data/json/', file);
+        var jsonfile = path.resolve(__dirname + '/data/json/', file);
         var result = JSON.parse(fs.readFileSync(jsonfile));
         return result;
     }
 }
+/* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
 /* 7 */
