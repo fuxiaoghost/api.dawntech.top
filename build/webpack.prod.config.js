@@ -4,9 +4,12 @@ const base = require('./webpack.base.config');
 
 module.exports = Object.assign({}, base, {
     output : Object.assign({}, base.output, {
-        filename : 'bundle.app.[hash].js',
+        filename : 'app.js',
         chunkFilename : 'chunk.[id].[hash].js',
         libraryTarget: 'commonjs2'
     }),
+    node: {
+        __dirname: true
+    },
     externals: Object.keys(require('../package.json').dependencies),
 });

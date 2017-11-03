@@ -1,0 +1,115 @@
+# 提高iOS项目的编译速度
+## 项目结构
+* CocoaPods做业务划分，每条业务线一个工程，每个工程依赖基础框架，业务线之间解耦依赖基础模块
+* 纯Objective-C代码，没有引入Swift代码
+* 独立服务器安装Xcode通过Jenkins打包，发布到fir.im
+* 2C端目前代码量33W左右，2B端28W左右
+
+## 打包时间
+随着项目的逐渐增大打包时间越来越久。代码打包是放在独立的服务器上，因为只是用来做项目打包使用，因此性能配置较低。为了保证每次打包的代码的完整性，每次都会进行全量的更新(包含Pods私有库和公共库的更新)。代码更新和Pos更新的时间加上编译时间安装包上传时间，2C端项目完整的打包时间基本在800s左右，2B端项目在1200s左右。长久的等待实在让人有些崩溃。
+## 解决方案
+[ccache](https://ccache.samba.org/)
+> ccache is a compiler cache. It speeds up recompilation by caching previous compilations and detecting when the same compilation is being done again. Supported languages are C, C++, Objective-C and Objective-C++.
+
+ccache是一个可以把编译中间产物缓存起来的工具，目前可以支持C、C++、Objective-C、Objective-C++，满足目前需求
+### 安装ccache
+如果已经安装过homebrew(Mac OSX上的软件包管理工具)，可以通过以下命令直接安装：
+
+`brew install ccache`
+
+如果没有安装homebrew，需要先安装homebrew
+
+`ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+
+### 创建ccache编译脚本
+安装完ccache之后我们需要让它介入到整个编译过程，如果发现ccache就用ccache编译，如果没有就走原有的clang
+新建一个空白文本文件
+
+`touch ccache-clang`
+
+保存如下内容：
+
+```
+#!/bin/sh
+if type -p ccache >/dev/null 2&gt;&amp;1; then
+	export CCACHE_MAXSIZE=10G
+	export CCACHE_CPP2=true
+	export CCACHE_HARDLINK=true
+	export CCACHE_SLOPPINESS=file_macro,time_macros,include_file_mtime,include_file_ctime,file_stat_matches
+	exec ccache /usr/bin/clang "$@"
+else 
+	exec clang "$@"
+fi
+```
+脚本比较容易理解，先判断ccache的执行路径是否存在，如果存在设置ccache的参数，并启动ccache编译，如果不存在走原有clang编译
+
+修改touch ccache-clang的权限为可执行
+
+`chmod 755 ccache-clang`
+
+### Xcode项目修改
+#### 定义CC常量
+在项目构建设置(Build Settings)中，添加一个常量CC，Xcode编译时会调用该路径下的编译器
+
+![](/api/static/blogs/2/0.jpg)
+
+如果ccache-clang跟工程文件平级，CC常量值可以设置为
+
+`$(SRCROOT)/ccache-clang`
+
+#### 关闭Clang Modules
+因为ccache不支持Clang Modules，所以需要把Enable Modules关闭
+
+![](/api/static/blogs/2/1.jpg)
+
+关闭Enable Modules后需要修改@import 为 #import，如果用到了系统框架还需要在Target 的 Build Phrase -&gt; Link Binary With Libraries手动引入
+
+### CocoaPods处理
+CocoaPods会把项目打包成静态库或者动态Framework，也需要把 Enable Modules选项关闭，这个操作需要在Podfile文件中完成
+在Podfile文件中增加如下配置
+
+```
+require 'fileutils'
+post_install do |installer_representation|
+    installer_representation.pods_project.targets.each do |target|
+        target.build_configurations.each do |config|
+        #关闭 Enable Modules
+        config.build_settings['CLANG_ENABLE_MODULES'] = 'NO'
+
+        # 在生成的 Pods 项目文件中加入 CC 参数
+        config.build_settings['CC'] = '$(SRCROOT)/ccache-clang'
+        end
+    end
+    # 拷贝主工程的ccache-clang文件到Pods下面
+    FileUtils.cp('ccache-clang', 'Pods/ccache-clang')
+end
+```
+
+### 查看编译结果
+在第一次启动ccache编译时因为所有文件都没有做过编译缓存，因此是没有任何提升效果的，反而由于ccache自己的缓存策略会降低编译速度，从第二次开始编译速度就会有所提升
+
+`ccache -s`
+
+```
+cache directory                     /Users/ecotech/.ccache
+primary config                      /Users/ecotech/.ccache/ccache.conf
+secondary config      (readonly)    /usr/local/Cellar/ccache/3.2.3/etc/ccache.conf
+cache hit (direct)                  5484
+cache hit (preprocessed)               0
+cache miss                          3436
+called for link                       10
+called for preprocessing              30
+can't use precompiled header        1896
+no input file                         10
+files in cache                     15504
+cache size                           2.8 GB
+max cache size                      10.0 GB
+```
+
+2C项目 优化前：615s 优化后：266s 提升：56.7%
+
+2B项目 优化前：902s 优化后：403s 提升：55.3%
+
+
+
+
