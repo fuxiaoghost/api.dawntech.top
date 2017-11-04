@@ -64,7 +64,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -296,94 +296,10 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var jsondata = __webpack_require__(6);
-exports.cycle = function(req, res) {
-    var result = jsondata.getdata('home_cycle.json');
-    res.json(result);
-}
-
-exports.photos = function(req, res) {
-    var result = jsondata.getdata('photos.json');
-    res.json(result);
-}
-exports.photo = function(req, res) {
-    var category = req.params.category;
-    var result = jsondata.getdata('photos.json');
-    for (var i = 0; i < result.items.length; i++) {
-        var item = result.items[i];
-        if (item.category === category) {
-            res.json({items: item.photos});
-            break;
-        }
-    }
-}
-exports.caegories =  function(req, res) {
-    var result = jsondata.getdata('home_items.json');
-    res.json(result);
-}
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-module.exports = require("body-parser");
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports) {
-
-module.exports = require("express");
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(__dirname) {var express = __webpack_require__(3);
-var bodyParser = __webpack_require__(2)
-var path = __webpack_require__(0);
-var index = __webpack_require__(1);
-var app = express();
-
-
-// parse application/json
-app.use(bodyParser.json());                        
- 
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// 错误处理
-app.use(function(err, req, res, next){
-    console.error(err.stack);
-    res.send(500, 'Error!!!');
-});
-
-// 静态文件
-app.use('/static', express.static(path.join(__dirname, 'public')));
-
-
-// 路由
-app.get('/home/cycle', index.cycle);
-app.get('/photos', index.photos);
-app.get('/photo/:category', index.photo);
-app.get('/home/categories', index.caegories);
-
-// 开启监听
-var server = app.listen(3000, 'localhost', function() {
-    var host = server.address().address;
-    var port = server.address().port;
-
-    console.log('listening at http://%s:%s', host, port);
-});
-/* WEBPACK VAR INJECTION */}.call(exports, "/"))
-
-/***/ }),
-/* 5 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -573,18 +489,128 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var jsondata = __webpack_require__(6);
+exports.cycle = function(req, res) {
+    var isMobile = req.query.isMobile;
+    if (isMobile === 'true') {
+        var result = jsondata.getdata('home_cycle_m.json');
+        res.json(result);   
+    }else {
+        var result = jsondata.getdata('home_cycle.json');
+        res.json(result);
+    }
+}
+
+exports.photos = function(req, res) {
+    var result = jsondata.getdata('photos.json');
+    res.json(result);
+}
+exports.photo = function(req, res) {
+    var category = req.params.category;
+    var result = jsondata.getdata('photos.json');
+    for (var i = 0; i < result.items.length; i++) {
+        var item = result.items[i];
+        if (item.category === category) {
+            res.json({items: item.photos});
+            break;
+        }
+    }
+}
+exports.caegories =  function(req, res) {
+    var result = jsondata.getdata('home_items.json');
+    res.json(result);
+}
+exports.knbrush = function(req, res) {
+    var result = jsondata.getdata('knbrush.json');
+    res.json(result);
+}
+exports.note = function(req, res) {
+    var result = jsondata.getdata('note.json');
+    res.json(result);
+}
+exports.blogs = function(req, res) {
+    var result = jsondata.getdata('blog.json');
+    res.json(result);
+}
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+module.exports = require("body-parser");
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+module.exports = require("express");
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(__dirname) {var express = __webpack_require__(4);
+var bodyParser = __webpack_require__(3)
+var path = __webpack_require__(0);
+var index = __webpack_require__(2);
+var app = express();
+
+
+// parse application/json
+app.use(bodyParser.json());                        
+ 
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// 错误处理
+app.use(function(err, req, res, next){
+    console.error(err.stack);
+    res.send(500, 'Error!!!');
+});
+
+// 静态文件
+app.use('/static', express.static(path.join(__dirname, 'public')));
+
+
+// 路由
+app.get('/home/cycle', index.cycle);
+app.get('/photos', index.photos);
+app.get('/photo/:category', index.photo);
+app.get('/home/categories', index.caegories);
+app.get('/knbrush', index.knbrush);
+app.get('/note', index.note);
+app.get('/blogs', index.blogs);
+
+// 开启监听 172.17.210.194
+var server = app.listen(3000, 'localhost', function() {
+    var host = server.address().address;
+    var port = server.address().port;
+
+    console.log('listening at http://%s:%s', host, port);
+});
+/* WEBPACK VAR INJECTION */}.call(exports, ""))
+
+/***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var path = __webpack_require__(0);
+/* WEBPACK VAR INJECTION */(function(__dirname, __filename, process) {var path = __webpack_require__(0);
 var fs = __webpack_require__(7);
 module.exports = {
     getdata: function(file) {
-        var jsonfile = path.resolve('./data/json/', file);
+        console.log(__dirname);
+        console.log(__filename);
+        console.log(process.cwd());
+        console.log(path.resolve('./'));
+        var jsonfile = path.resolve(__dirname + '/data/json/', file);
         var result = JSON.parse(fs.readFileSync(jsonfile));
         return result;
     }
 }
+/* WEBPACK VAR INJECTION */}.call(exports, "src", "/index.js", __webpack_require__(1)))
 
 /***/ }),
 /* 7 */

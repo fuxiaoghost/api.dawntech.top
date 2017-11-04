@@ -30,8 +30,8 @@ app.get('/knbrush', index.knbrush);
 app.get('/note', index.note);
 app.get('/blogs', index.blogs);
 
-// 开启监听
-var server = app.listen(3000, 'api.dawntech.top', function() {
+// 开启监听 172.17.210.194
+var server = app.listen(3000, 'localhost', function() {
     var host = server.address().address;
     var port = server.address().port;
 
