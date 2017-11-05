@@ -29,6 +29,7 @@ app.get('/home/categories', index.caegories);
 app.get('/knbrush', index.knbrush);
 app.get('/note', index.note);
 app.get('/blogs', index.blogs);
+app.get('/blog/:id',index.blog);
 app.get('/signature', index.weixinSignature);
 
 // 开启监听 172.17.210.194

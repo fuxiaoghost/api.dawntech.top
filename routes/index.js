@@ -21,7 +21,7 @@ exports.photo = function(req, res) {
     for (var i = 0; i < result.items.length; i++) {
         var item = result.items[i];
         if (item.category === category) {
-            res.json({items: item.photos});
+            res.json({items: item.photos, title: item.title});
             break;
         }
     }
@@ -41,6 +41,17 @@ exports.note = function(req, res) {
 exports.blogs = function(req, res) {
     var result = jsondata.getdata('blog.json');
     res.json(result);
+}
+exports.blog = function(req, res) {
+    var id = req.params.id;
+    var result = jsondata.getdata('blog.json');
+    for(var i = 0; i < result.items.length; i++) {
+        var item = result.items[i];
+        if (item.id == id) {
+            res.json(item);
+            break;
+        }
+    }
 }
 
 // 微信
