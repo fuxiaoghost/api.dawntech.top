@@ -1,4 +1,5 @@
 var jsondata = require('../src/jsondata');
+var weixin = require('../src/weixin');
 exports.cycle = function(req, res) {
     var isMobile = req.query.isMobile;
     if (isMobile === 'true') {
@@ -40,4 +41,10 @@ exports.note = function(req, res) {
 exports.blogs = function(req, res) {
     var result = jsondata.getdata('blog.json');
     res.json(result);
+}
+
+// 微信
+exports.weixinSignature = function(req, res) {
+    var url = req.query.url;
+    weixin.signature(res, 0, url);
 }
