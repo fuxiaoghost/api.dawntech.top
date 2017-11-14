@@ -1,0 +1,255 @@
+# iOS 基于非Case的Code Coverage系统搭建
+关于iOS测试的Code Coverage大致可分为两类
+* 基于Case的，Xcode 7及以后的版本已原生支持，写好Case，开启“Gather coverage data”即可，操作方便简单
+* 基于非Case的，主要通过gcov，lcov实现，相比于前者，操作起来就复杂一些
+
+本文主要针对于第二种，基于非Case的Code Coverage自动化流程搭建
+
+## 前言
+iOS代码打包过程中可以生成两类文件
+* gcda：包含代码执行情况，以及覆盖率的信息归纳
+* gcno：包含基本的块信息，以及代码行与块的映射关系
+
+gcno是编译过程中产生，gcda是通过gcov工具生成
+
+通过工具lcov可以将这两类文件生成coverage.info文件，再利用genhtml可以将coverage.info文件生成可视化的网页
+
+原理很简单，复杂的是整个过程的自动化
+## 收集gcno文件
+### 修改工程配置
+为了能收集到gcno文件我们需要开启两个编译设置
+* GCC_GENERATE_TEST_COVERAGE_FILES=YES
+* GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES
+
+当然为了不影响到正常的Debug版本和Release版本，我们把整个Code Coverage过程搭在了AdHoc版本上，结合已有的版本发布系统可以保证流程的流畅运行
+
+因为项目是通过CocoaPods的形式做了模块化的拆分，因此需要在每一个项目中都要开启这两个配置
+
+因此所有的设置都放在了Podfile文件中
+```
+# 需要收集Code Coverage的模块
+ntargets = Array['M0', '', 'M1', 'M2', 'M3']
+
+require 'xcodeproj'
+post_install do |installer|
+    installer.pods_project.targets.each do |target|
+        target.build_configurations.each do |config|
+            if(config.name <=> 'AdHoc') == 0
+                # 设置预编译变量CODECOVERAGE
+                config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = '$(inherited) CODECOVERAGE=1'
+                config.build_settings['GCC_GENERATE_TEST_COVERAGE_FILES'] = 'NO'
+                config.build_settings['GCC_INSTRUMENT_PROGRAM_FLOW_ARCS'] = 'NO'
+                ntargets.each do |ntarget|
+                    if(ntarget <=> target.name) == 0
+                        config.build_settings['GCC_GENERATE_TEST_COVERAGE_FILES'] = 'YES'
+                        config.build_settings['GCC_INSTRUMENT_PROGRAM_FLOW_ARCS'] = 'YES'
+                        break
+                    end
+                end
+            else
+                config.build_settings['GCC_GENERATE_TEST_COVERAGE_FILES'] = 'NO'
+                config.build_settings['GCC_INSTRUMENT_PROGRAM_FLOW_ARCS'] = 'NO'
+            end
+        end
+    end
+
+    # 修改主工程
+    project_path = './MainTarget.xcodeproj'
+    project = Xcodeproj::Project.open(project_path)
+    puts project
+    project.targets.each do |target|
+        if(target.name <=> 'MainTarget') == 0
+            target.build_configurations.each do |config|
+                if(config.name <=> 'AdHoc') == 0
+                    # 设置预编译变量CODECOVERAGE
+                    config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = '$(inherited) CODECOVERAGE=1'
+                    config.build_settings['GCC_GENERATE_TEST_COVERAGE_FILES'] = 'YES'
+                    config.build_settings['GCC_INSTRUMENT_PROGRAM_FLOW_ARCS'] = 'YES'
+                else
+                    config.build_settings['GCC_GENERATE_TEST_COVERAGE_FILES'] = 'NO'
+                    config.build_settings['GCC_INSTRUMENT_PROGRAM_FLOW_ARCS'] = 'NO'
+                end
+            end
+        end
+    end
+    project.save()
+end
+```
+这里我们做了三件事情
+* 修改主工程的GCC_GENERATE_TEST_COVERAGE_FILES和GCC_INSTRUMENT_PROGRAM_FLOW_ARCS
+* 修改所有自工程的GCC_GENERATE_TEST_COVERAGE_FILES和GCC_INSTRUMENT_PROGRAM_FLOW_ARCS
+* 在所有工程中增加预编译变量CODECOVERAGE（方便后续的处理）
+
+### 收集gcno文件
+
+Podfile文件增加私有库
+
+`pod 'CodeCoverage', :git => 'http://*.*.*.*/ios-team/CC.git'`
+
+这个库里面只有一个文件“cc.sh”，这个shell脚本会在工程编译结束之后执行，我们将它加入到主工程Build Phases的最后一步
+![cc.sh](/api/static/blogs/3/0.jpg)
+
+cc.sh的文件内容
+```
+archs=('arm64' 'armv7')
+
+objroot=${OBJROOT}
+project=${PROJECT_NAME}
+configuration=${CONFIGURATION}
+srcroot=${SRCROOT}
+ccpath=$srcroot/Pods/CodeCoverage/gcno
+iphoneos=$objroot/$project.build/$configuration-iphoneos
+podsiphoneos=$objroot/Pods.build/$configuration-iphoneos
+
+# app 
+apppath=$iphoneos/$project.build/Objects-normal
+
+
+# 创建CodeCoverage文件
+if [ -d $ccpath ]; then
+    rm -rf $ccpath
+fi
+mkdir -p $ccpath
+
+podsbuilds=$(ls $podsiphoneos)
+
+for arch in ${archs[@]};
+do  
+    mkdir $ccpath/$arch
+    if [ -d $apppath/$arch ];then
+        find $apppath/$arch -name "*.*" | grep .gcno
+        if [ $? -eq 0 ];then
+            cp $apppath/$arch/*.gcno $ccpath/$arch
+        fi
+    fi
+	
+    for podsbuild in ${podsbuilds[@]};
+    do 
+        podspath=$podsiphoneos/$podsbuild/Objects-normal
+        if [ -d $podspath/$arch ];then 
+            find $podspath/$arch -name "*.*" | grep .gcno 
+            if [ $? -eq 0 ];then
+                cp $podspath/$arch/*.gcno $ccpath/$arch
+            fi
+        fi
+    done 
+done 
+```
+整个脚本的编写略显啰嗦，其实是为了避免在这个过程中出行报错中断影响整个工程的编译
+
+这里大致可以分为以下几个功能
+* 找到Pods下面刚刚创建过得私有库CodeCoverage，如果已经存在gcno文件夹就把他清除掉
+* 找到主工程编译过程中产生的gcno文件并拷贝到CodeCoverage/gcno/$arch下
+* 找到所有自工程编译过程中产生的gcno文件并拷贝到CodeCoverage/gcno/$arch下
+
+到这里编辑过程中产生的gcno文件已经收集完成
+
+## 收集gcda文件
+之前的工程文件编译设置在上一步已经完成，这里不再赘述
+
+在AppDelegate中添加
+
+```
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+#if !TARGET_IPHONE_SIMULATOR
+#ifdef CODECOVERAGE
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *ccpath = [documentsDirectory stringByAppendingPathComponent:@"CodeCoverage"];
+    setenv("GCOV_PREFIX", [ccpath cStringUsingEncoding:NSUTF8StringEncoding], 1);
+    setenv("GCOV_PREFIX_STRIP", "13", 1);
+    extern void __gcov_flush(void);
+    __gcov_flush();
+#endif
+#endif
+}
+```
+> gcov 是 gcc附带的代码覆盖率测试工具，伴随gcc发布，配合gcc共同实现对代码语句的覆盖率测试，gcov可以统计到每一行代码的执行频率
+
+每次应用退到后台都会生成当前测试的代码覆盖率文件gcda，并以增量的方式追加到我们刚刚设置的Documents/CodeCoverage下
+
+## 数据合并
+
+gcda和gcno文件都已经收集完成，接下来我们需要把他汇总到一起，并完成报告的生成，我们可以通过下面的简图了解一下它们的分布情况
+
+![](/api/static/blogs/3/1.jpg)
+* 打包流程打出的包会以日期和时间的格式命名存放在服务器
+* 服务器会开启一个socket服务用于收集来自客户端测试报告文件gcda
+    * 文件以：版本/包名/设备标识/arm64(armv7)路径存储到服务器
+    * 客户端每次上传都会清理上次生成的报告，用最新的报告替换
+* 每当收到客户端发来的测试报告，就把对应的包编译过程中生成的gcno文件找到跟上传过来的gcda文件合并生成当前客户端的测试报告文件converage.info
+* 合并当前版本所有生成的coverage[*].info文件生成总的converage.info文件
+* 把converage文件导出为html可视化报告，通过nginx对外输出
+
+整个过程中需要用到[LCOV](http://ltp.sourceforge.net/coverage/lcov.php)
+* 生成coverage.info ./lcov --capture --directory [gcno和gcda汇总的文件夹] --output-file [coverage[*].info]
+* 合并coverage.info lcov -a [coverage0.info] -a [coverage1.info] -o [coverage.info]
+* 生成html ./genhtml [coverage.info] --output-directory [html]
+
+socket服务端和客户端上传接受文件的代码就不贴了，有点多，有多种实现方案，可以网上找找，大同小异
+
+下面是合并gcno和gcda文件生成报告的脚本
+```
+path='/Users/***/www/gcda/Project'
+gcno='/Users/***/www/gcno'
+lcov='/Users/***/www/lcov'
+html='/Users/***/www/html/Project'
+
+# 获取Project下所有的版本
+versions=$(ls -t $path)
+
+# 最新版本
+version=${versions[0]}
+
+# 获取最新版本的所有可用包
+pkgs=$(ls $path/$version)
+
+for pkg in ${pkgs[@]}
+do
+    # 检测是否有打包过程中的中间件
+    if [ ! -d $path/$version/$pkg/.arm64 ];then
+        cp -rf $gcno/$pkg/armv7  $path/$version/$pkg/.armv7
+        cp -rf $gcno/$pkg/arm64  $path/$version/$pkg/.arm64
+    fi
+    # 获取pkg下所有的测试机
+    devices=$(ls $path/$version/$pkg)
+    for device in ${devices[@]}
+    do 
+        if [ ! -f $path/$version/$pkg/$device/coverage.info ];then
+            if [ -d $path/$version/$pkg/$device/arm64 ];then
+                cp $path/$version/$pkg/.arm64/*.gcno $path/$version/$pkg/$device/arm64
+                $lcov/lcov --capture --directory $path/$version/$pkg/$device/arm64 --output-file $path/$version/$pkg/$device/coverage.info
+                coverages=("${coverages[@]}" "$path/$version/$pkg/$device/coverage.info")
+            fi
+            if [ -d $path/$version/$pkg/$device/armv7 ];then
+                cp $path/$version/$pkg/.armv7/*.gcno $path/$version/$pkg/$device/armv7
+                $lcov/lcov --capture --directory $path/$version/$pkg/$device/armv7 --output-file $path/$version/$pkg/$device/coverage.info
+                coverages=("${coverages[@]}" "$path/$version/$pkg/$device/coverage.info")
+            fi
+        else
+            coverages=("${coverages[@]}" "$path/$version/$pkg/$device/coverage.info")
+        fi
+    done
+done
+
+cmd="$lcov/lcov"
+for coverage in ${coverages[@]}
+do
+    cmd="$cmd -a $coverage"
+done
+cmd="$cmd -o $path/$version/.coverage.info"
+eval $cmd
+
+# 生成html
+if [ -d $html/$version ];then
+    rm -rf $html/$version
+fi
+$lcov/genhtml $path/$version/.coverage.info --output-directory $html/$version
+```
+
+
+# 测试覆盖率报告
+![测试覆盖率报告](/api/static/blogs/3/2.jpg)
+
+
+

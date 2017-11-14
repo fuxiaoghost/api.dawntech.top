@@ -1,6 +1,13 @@
 {
     "items": [
         {
+            "id": "b0004",
+            "title": "iOS 基于非Case的Code Coverage系统搭建",
+            "desc": "关于iOS测试的Code Coverage大致可分为两类：1、基于Case的，Xcode 7及以后的版本已原生支持，写好Case，开启“Gather coverage data”即可，操作方便简单；2、基于非Case的，主要通过gcov，lcov实现，相比于前者，操作起来就复杂一些",
+            "target": "/api/static/blogs/3/3.markdown",
+            "date": "2017-11-14"
+        },
+        {
             "id": "b0003",
             "title": "提高iOS项目的编译速度",
             "desc": "在项目越来越大，代码量快速增加的情况下如何才能提升iOS项目的编译速度？",
