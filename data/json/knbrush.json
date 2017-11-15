@@ -63,7 +63,8 @@
         ],
         "works": [
             "/api/static/images/knbrush/works/works0.jpg",
-            "/api/static/images/knbrush/works/works1.jpg"
+            "/api/static/images/knbrush/works/works1.jpg",
+            "/api/static/images/knbrush/works/works2.jpg"
         ]
     }
 }
