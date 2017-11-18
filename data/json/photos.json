@@ -581,6 +581,80 @@
                     "url": "/api/static/images/photos/jiankou/jiankou_15.jpg"
                 }
             ]
+        },
+        {
+            "title": "丽江的小风情",
+            "category": "lijiang",
+            "date": "2013/5/4",
+            "url": "/api/static/images/photos/lijiang/cover.jpg",
+            "photos":[
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_0.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_1.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_2.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_3.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_4.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_5.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_6.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_7.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_8.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_9.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_10.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_11.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_12.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_13.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_14.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_15.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_16.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_17.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_18.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_19.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_20.jpg"
+                },
+                {
+                    "url": "/api/static/images/photos/lijiang/lijiang_21.jpg"
+                }
+            ]
         }
     ]
 }
