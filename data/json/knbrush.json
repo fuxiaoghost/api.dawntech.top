@@ -63,7 +63,14 @@
         ],
         "works": [
             "/api/static/images/knbrush/works/works0.jpg",
-            "/api/static/images/knbrush/works/works1.jpg"
+            "/api/static/images/knbrush/works/works1.jpg",
+            "/api/static/images/knbrush/works/works2.jpg",
+            "/api/static/images/knbrush/works/works3.jpg",
+            "/api/static/images/knbrush/works/works4.jpg",
+            "/api/static/images/knbrush/works/works5.jpg",
+            "/api/static/images/knbrush/works/works6.jpg",
+            "/api/static/images/knbrush/works/works7.jpg",
+            "/api/static/images/knbrush/works/works8.jpg"
         ]
     }
 }
