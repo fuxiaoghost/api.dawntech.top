@@ -196,13 +196,13 @@ lcov='/Users/***/www/lcov'
 html='/Users/***/www/html/Project'
 
 # 获取Project下所有的版本
-versions=$(ls -t $path)
+versions=($(ls -t $path))
 
 # 最新版本
 version=${versions[0]}
 
 # 获取最新版本的所有可用包
-pkgs=$(ls $path/$version)
+pkgs=($(ls $path/$version))
 
 for pkg in ${pkgs[@]}
 do
@@ -212,7 +212,7 @@ do
         cp -rf $gcno/$pkg/arm64  $path/$version/$pkg/.arm64
     fi
     # 获取pkg下所有的测试机
-    devices=$(ls $path/$version/$pkg)
+    devices=($(ls $path/$version/$pkg))
     for device in ${devices[@]}
     do 
         if [ ! -f $path/$version/$pkg/$device/coverage.info ];then
