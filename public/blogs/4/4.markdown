@@ -61,11 +61,11 @@ for (var ii = 0; ii < names.length; ++ii) {
 球面分割在笛卡尔坐标系中完成还是有点困难的，我们把他转换到球坐标系中就容易的多了
 
 设定球的半径为单位1，则
-* x = sinθ.sinψ
+* x = sinθ.sinφ
 * y = cosθ
-* z = sinθ.cosψ
+* z = sinθ.cosφ
 * θ[0,π]
-* ψ[-π,π]
+* φ[-π,π]
 
 球面分割函数
 ```
@@ -104,10 +104,10 @@ for (var ii = 0; ii < names.length; ++ii) {
 }
 var getPointTheta = function (theta, fai) {
     /*
-    x = sinθ.sinψ
+    x = sinθ.sinφ
     y = cosθ
-    z = sinθ.cosψ
-    (θ[0,π] ψ[-π,π])
+    z = sinθ.cosφ
+    (θ[0,π] φ[-π,π])
     */
     var x = Math.sin(theta) * Math.sin(fai);
     var y = Math.cos(theta);
@@ -119,4 +119,21 @@ var getPointTheta = function (theta, fai) {
 
 ![球面分割](5.jpg)
 
-### 墨卡托映射
+### 墨卡托投影
+之前已经说过，多数的全景相机或者全景拼接软件会通过墨卡托投影的方式把三维全景信息映射到二位屏幕图片上，我们所要做的就是把二位图片还原为三维全景，因此需要用到墨卡托投影的古德曼函数
+
+从纬线φ和经线λ（其中λ0是地图的中央经线）推导为坐标系中的点坐标x和y
+* x = λ - λ0 
+* y = ln(tanφ + secφ)
+
+因为在两极附近y的值是区域无穷大的，因此需要做一点简单的处理
+
+映射函数
+```
+var epsilon = Math.PI * 10/180;         // 
+var mmax = Math.PI/2 - epsilon;
+var mmaxvalue = Math.log(Math.tan(mmax) + 1.0/Math.cos(mmax))
+var ts = (Math.PI/2 - epsilon)/(Math.PI/2);
+```
+
+
