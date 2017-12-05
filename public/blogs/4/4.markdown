@@ -114,6 +114,10 @@ var getPointTheta = function (theta, fai) {
     var z = Math.sin(theta) * Math.cos(fai);
     return { x: x, y: y, z: z };
 }
+var getVertice = function(verticesSizes, p, st, index) {
+    verticesSizes.set([p.x, p.y, p.z, st.s, st.t], index);
+    return index + 5;
+}
 ```
 然后我们就得到了
 
@@ -126,14 +130,25 @@ var getPointTheta = function (theta, fai) {
 * x = λ - λ0 
 * y = ln(tanφ + secφ)
 
-因为在两极附近y的值是区域无穷大的，因此需要做一点简单的处理
+因为在两极附近y的值是趋于无穷大的，因此需要做一点简单的处理
 
-映射函数
+球面纹理映射函数
 ```
-var epsilon = Math.PI * 10/180;         // 
+var epsilon = Math.PI * 10/180;         // 两极部分去掉10°
 var mmax = Math.PI/2 - epsilon;
 var mmaxvalue = Math.log(Math.tan(mmax) + 1.0/Math.cos(mmax))
 var ts = (Math.PI/2 - epsilon)/(Math.PI/2);
+
+var getSTTheta = function (theta, fai) {
+    // 墨卡托坐标
+    var s = 0.5 - (fai) / (2 * Math.PI);
+    // [-π/2, π/2]
+    var mtheta = -(theta - Math.PI / 2) * ts;
+    var t = Math.log(Math.tan(mtheta) + 1.0 / Math.cos(mtheta))
+    t = 0.5 + 0.5 * t / mmaxvalue;
+    return { s: s, t: t };
+}
 ```
+
 
 
