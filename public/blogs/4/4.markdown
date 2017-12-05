@@ -3,16 +3,120 @@
 ## 前言
 在做全景模型之前我们需要先了解几个知识
 ### 球模型
-要做到水平360°垂直180°无死角的全景体验，我们需要搭建一个球体模型，视角放置在球心的位置，然后把拍摄到的图片贴图到球模型的内部，就可以构建起一个简单的全景体验
+要做到水平360°垂直180°无死角的全景体验，我们需要搭建一个球体模型，视角放置在球心的位置，然后把拍摄到的图片贴图到球模型的内部，就可以构建起一个简单的全景体验，下图是通过Grapher生成的，可作参考
+
+![球模型](1.jpg)
 ### 墨卡托投影（Mercator projection）
 >墨卡托投影，是正轴等角圆柱投影。由荷兰地图学家墨卡托(G.Mercator)于1569年创立。假想一个与地轴方向一致的圆柱切或割于地球，按等角条件，将经纬网投影到圆柱面上，将圆柱面展为平面后，即得本投影。墨卡托投影在切圆柱投影与割圆柱投影中，最早也是最常用的是切圆柱投影。
 
-[墨卡托投影（百度）](https://baike.baidu.com/item/墨卡托投影])
+* 在全景图像采集阶段我们需要用该投影把全景空间采集到的图像投射到一张平面图片上，作为全景信息的记录，这部分工作一般会在全景相机内部完成或者在全景图片拼接生成过程中完成，这里就不多做解释，本例暂未涉及
 
-[墨卡托投影（维基）](https://zh.wikipedia.org/wiki/麥卡托投影法])
+* 在全景图像展示阶段我们需要用该投影把平面全景图片贴图到我们的球模型上，详细的过程可参考
+    * [墨卡托投影（百度）](https://baike.baidu.com/item/墨卡托投影)
 
-在全景图像采集阶段我们需要用该投影把全景空间采集到的图像投射到一张平面图片上，作为全景信息的记录
+    * [墨卡托投影（维基）](https://zh.wikipedia.org/wiki/麥卡托投影法)
 
-在全景图像展示阶段我们需要用该投影把平面全景图片贴图到我们的球模型上
+通过下面的图我们可以先做个简单了解，心理大致有个概念
+![墨卡托投影](2.jpg)
+
 ### 轨迹球算法
+计算机的三维世界显示类似生活中的摄影，屏幕就是一个相机，三维模型就是被摄物体。三维模型在屏幕上的投影形成我们所能看到的画面。
+我们与三维模型的交互是通过二维的计算机屏幕来完成的，我们在二维屏幕上拖拽鼠标，从而引起三维模型的变化。二维空间的变化是不能直接应用在三维空间的，因此我们需要在二维世界和三维世界搭建一个桥梁来完成整个交互过程。轨迹球就是在二维空间之外虚构一个球形曲面，使鼠标在二维空间上的移动投影到球形曲面上，再通过球形曲面的变化改变引起三维世界的变化。
 
+整个过程跟以前机械鼠标的轨迹球非常类似
+
+![轨迹球](3.jpg)
+
+## WebGL环境搭建
+有了前面的几点知识，接下来的工作会比较容易切入。
+
+首先我们得准备一套能在网页上运行的3D开发环境，这里选择了WebGL，已经非常成熟，而且被大多数浏览器兼容。
+### 准备画板
+首先WebGL需要一个能够绘制3D模型的画布
+```
+<canvas class="canvas" id="webgl"></canvas>
+```
+代码很简单，画布准备好了
+### 启动WebGL
+```
+var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+var gl = null;
+var canvas = document.getElementById('webgl');
+for (var ii = 0; ii < names.length; ++ii) {
+    try {
+        gl = canvas.getContext(names[ii]);
+    } catch (e) { }
+    if (gl) {
+        break;
+    }        
+}
+```
+这里需要做一些兼容的事情，不同浏览器getContext的参数稍有不同，拿到gl之后就可以在canvas绘制3D模型了
+用法跟OpenGL一样，只不过稍有一点点差别
+## 构建球模型
+全景贴图之前得准备一个球模型，OpenGL的惯例我们需要用三角形对球面进行分割
+### 球坐标系
+![球坐标系](4.jpg)
+
+球面分割在笛卡尔坐标系中完成还是有点困难的，我们把他转换到球坐标系中就容易的多了
+
+设定球的半径为单位1，则
+* x = sinθ.sinψ
+* y = cosθ
+* z = sinθ.cosψ
+* θ[0,π]
+* ψ[-π,π]
+
+球面分割函数
+```
+ var createSphere = function (hslice, vslice) {
+    var verticesSizes = new Float32Array(hslice * vslice * 3 * 2 * 5);
+    var theta, fai;
+    var hstep = Math.PI / hslice;
+    var vstep = 2 * Math.PI / vslice;
+    var index = 0;
+    for (var i = 0; i < hslice; i++) {
+        theta = hstep * i;
+        for (var j = 0; j < vslice; j++) {
+            fai = -Math.PI + vstep * j;
+            // 点坐标
+            var p1 = getPointTheta(theta, fai);
+            var p2 = getPointTheta(theta + hstep, fai);
+            var p3 = getPointTheta(theta, fai + vstep);
+            var p4 = getPointTheta(theta + hstep, fai + vstep);
+            // 纹理坐标
+            var st1 = getSTTheta(theta, fai);
+            var st2 = getSTTheta(theta + hstep, fai);
+            var st3 = getSTTheta(theta, fai + vstep);
+            var st4 = getSTTheta(theta + hstep, fai + vstep);
+
+            // 上三角
+            index = getVertice(verticesSizes, p1, st1, index);
+            index = getVertice(verticesSizes, p2, st2, index);
+            index = getVertice(verticesSizes, p3, st3, index);
+            // 下三角
+            index = getVertice(verticesSizes, p3, st3, index);
+            index = getVertice(verticesSizes, p2, st2, index);
+            index = getVertice(verticesSizes, p4, st4, index);
+        }
+    }
+    return verticesSizes;
+}
+var getPointTheta = function (theta, fai) {
+    /*
+    x = sinθ.sinψ
+    y = cosθ
+    z = sinθ.cosψ
+    (θ[0,π] ψ[-π,π])
+    */
+    var x = Math.sin(theta) * Math.sin(fai);
+    var y = Math.cos(theta);
+    var z = Math.sin(theta) * Math.cos(fai);
+    return { x: x, y: y, z: z };
+}
+```
+然后我们就得到了
+
+![球面分割](5.jpg)
+
+### 墨卡托映射
