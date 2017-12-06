@@ -142,13 +142,261 @@ var ts = (Math.PI/2 - epsilon)/(Math.PI/2);
 var getSTTheta = function (theta, fai) {
     // 墨卡托坐标
     var s = 0.5 - (fai) / (2 * Math.PI);
-    // [-π/2, π/2]
+    // [-π/2, π/2] * ts
     var mtheta = -(theta - Math.PI / 2) * ts;
     var t = Math.log(Math.tan(mtheta) + 1.0 / Math.cos(mtheta))
     t = 0.5 + 0.5 * t / mmaxvalue;
     return { s: s, t: t };
 }
 ```
+有了球面的三角形分割和球面纹理映射我们就得到了WebGL可用的点坐标和纹理坐标，接下来就可以进行球面绘制了
+## 顶点着色器&片元着色器
+有了顶点坐标和纹理坐标之后我们就需要为这些点和纹理建立一个映射关系，就是描述一下如何把我们需要的纹理绘制到点坐标指定位置
 
+这里就需要用到WebGL提供的顶点着色器和片元着色器(也叫像素着色器)。
+
+简单来讲，着色器（Shader）是用来实现图像渲染的，用来替代固定渲染管线的可编辑程序。其中顶点着色器主要负责顶点的几何关系等的运算，片元着色器主要负责片源颜色等的计算。再通俗点说，顶点着色器是用来打线稿的，片元着色器是用来上色的。
+
+### 着色器脚本
+接下来我们看下我们的球面模型的顶点着色器和片元着色器
+```
+// 顶点着色器
+attribute vec4 position;
+attribute vec2 texcoord;
+
+uniform mat4 modelViewProjectionMatrix;
+varying vec2 texcoordVarying;
+varying vec4 positionVarying;
+
+void main()
+{
+    positionVarying = position;
+    texcoordVarying = texcoord;
+    // 控制模型变换
+    vec4 positionV = modelViewProjectionMatrix * position;  
+    // 在原点位置变换之后重新定位新的原点位置，并以此计算新的顶点相对位置，给片源着色器用
+    positionVarying = positionV - modelViewProjectionMatrix * vec4(0.0,0.0,0.0,1.0);
+    gl_Position = positionV;
+}
+
+// 片元着色器
+varying lowp vec2 texcoordVarying;
+varying lowp vec4 positionVarying;
+uniform sampler2D colorMap;
+
+void main()
+{
+    // 采集纹理
+    lowp vec4 textureColor = texture2D(colorMap,texcoordVarying); 
+    // 来自顶点着色器的顶点位置，把球面刨开，只展示半球
+    if (positionVarying.z < 0.0) {
+        discard;
+    }
+    gl_FragColor = textureColor;
+}
+```
+### 编译连接着色器脚本
+
+写好着色脚本之后我们需要对脚本进行编译和连接，之后才能使用
+
+```
+var program = this.createProgram(gl, vshader, fshader);
+if (!program) {
+    console.log('Failed to create program');
+    return false;
+}
+
+gl.useProgram(program);
+gl.program = program;
+
+createProgram(gl, vshader, fshader) {
+    // Create shader object
+    var vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, vshader);
+    var fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, fshader);
+    if (!vertexShader || !fragmentShader) {
+        return null;
+    }
+
+    // Create a program object
+    var program = gl.createProgram();
+    if (!program) {
+        return null;
+    }
+
+    // Attach the shader objects
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+
+    // Link the program object
+    gl.linkProgram(program);
+
+    // Check the result of linking
+    var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if (!linked) {
+        var error = gl.getProgramInfoLog(program);
+        console.log('Failed to link program: ' + error);
+        gl.deleteProgram(program);
+        gl.deleteShader(fragmentShader);
+        gl.deleteShader(vertexShader);
+        return null;
+    }
+    return program;
+}
+
+loadShader(gl, type, source) {
+    // create shader object
+    var shader = gl.createShader(type);
+    if (shader == null) {
+        console.log('unable to create shader');
+        return null;
+    }
+
+    // Set the shader program
+    gl.shaderSource(shader, source);
+
+    // Compile the shader
+    gl.compileShader(shader);
+
+    // Check the result of compilation
+    var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    if (!compiled) {
+        var error = gl.getShaderInfoLog(shader);
+        console.log('Failed to compile shader: ' + error);
+        gl.deleteShader(shader);
+        return null;
+    }
+
+    return shader;
+}
+```
+
+## 加载纹理数据
+之前的纹理坐标已经配置好了，这个时候要把需要的纹理数据，也就是我们的全景图载入到程序中。这里需要一点点技巧
+### 非二次幂纹理的处理
+二次幂纹理就是纹理图像的长和宽都为2的整数次幂，这样的纹理可以得到更好的处理速度和性能保证，但是我们拿到的全景图片不太可能做到保证每一张都能做到规整的二次幂图，以此我们需要做一点调整
+对非二次幂纹理进行二次幂重绘
+### 纹理图像翻转
+由于图像的坐标系(零点在左上角)和WebGL的坐标系(零点在左下角)存在差异，因此有些时候需要对图像进行一定的翻转
+### Web图像异步加载
+Web图像下载会有一定的延时，因此需要做好异步处理
+
+```
+isPowerOfTwo(x) {
+    return (x & (x - 1)) == 0;
+}
+
+nextHighestPowerOfTwo(x) {
+    --x;
+    for (var i = 1; i < 32; i <<= 1) {
+        x = x | x >> i;
+    }
+    return x + 1;
+}
+loadImageTexture(gl, url, callback) {
+    var image = new Image();
+    var self = this;
+    image.onload = function() {
+        if (!self.isPowerOfTwo(image.width) || !self.isPowerOfTwo(image.height)) {
+            // Scale up the texture to the next highest power of two dimensions.
+            var canvas = document.createElement("canvas");
+            canvas.width = self.nextHighestPowerOfTwo(image.width);
+            canvas.height = self.nextHighestPowerOfTwo(image.height);
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            image = canvas;
+        }
+
+        var texture = gl.createTexture();
+        // 绑定纹理
+        gl.bindTexture(gl.TEXTURE_2D, texture)
+        // 对纹理图像进行y轴翻转
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+        // 配置纹理参数
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // 生成mipmap
+        gl.generateMipmap(gl.TEXTURE_2D);
+        
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        
+        callback(texture);
+    }
+    image.src = url;
+}
+```
+## 绘图
+有了顶点和纹理坐标、着色脚本、全景纹理数据我们就可以进行绘图了，当然这个过程中还会涉及到投影变换和模型变换，这个我们接下来再说
+先看看简单的绘图脚本
+```
+draw: function () {
+    var gl = this.gl;
+    var position = gl.getAttribLocation(gl.program, 'position');
+    var texcoord = gl.getAttribLocation(gl.program, 'texcoord');
+    var colorMap = gl.getUniformLocation(gl.program, 'colorMap');
+    var modelViewProjectionMatrix = gl.getUniformLocation(gl.program, 'modelViewProjectionMatrix');
+    var vertexBuffer = gl.createBuffer();
+    if (!vertexBuffer) {
+        return;
+    };
+    var FSIZE = this.verticesSizes.BYTES_PER_ELEMENT;
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.verticesSizes, gl.STATIC_DRAW);
+
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, FSIZE * 5, 0);
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(texcoord, 2, gl.FLOAT, false, FSIZE * 5, FSIZE * 3);
+    gl.enableVertexAttribArray(texcoord);
+
+    // 开启0号纹理单元
+    gl.activeTexture(gl.TEXTURE0);
+    // 绑定纹理
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+    // 绘图
+    gl.uniform1i(colorMap, 0);
+    gl.uniformMatrix4fv(modelViewProjectionMatrix, false, new Float32Array(WebGLModelManager.modelViewProjectionMatrix().m));
+    gl.disable(gl.BLEND);
+
+    gl.drawArrays(gl.TRIANGLES, 0, this.verticesSizes.length/5);
+    gl.deleteBuffer(vertexBuffer);
+    
+    // console.log("draw");
+}
+```
+
+## 投影变换
+为了保证我们绘制的三维模型的视觉真实性，我们需要用到[透视投影](https://zh.wikipedia.org/wiki/透视投影)。
+
+具体的原理这里不做过多解释，它的目的就是为了保证我们绘制的模型看起来更加真实，比如近处的物体看起来会比较大，远处的物体看起来会比较小
+
+透视投影的矩阵变换为
+```
+static makePerspective(fovyRadians, aspect, nearZ, farZ) {
+    var cotan = 1.0 / Math.tan(fovyRadians / 2.0);
+    var m = new Matrix4();
+    m.m = [ cotan/aspect, 0.0, 0.0, 0.0,
+            0.0, cotan, 0.0, 0.0,
+            0.0, 0.0, (farZ + nearZ) / (nearZ - farZ), -1.0,
+            0.0, 0.0, (2.0 * farZ * nearZ) / (nearZ - farZ), 0.0 ];
+    
+    return m;
+}
+
+updateProjectionMatrix: function() {
+    var scale =  this.trackball.degreeScale();
+    let canvas = this.$refs.webgl;
+    var width = canvas.clientWidth;
+    var height = canvas.clientHeight;
+    var ratio = width/height;
+    WebGLModelManager.projectionMatrix = Matrix4.makePerspective((50.0 - 40 * (scale -1)) * (Math.PI / 180), ratio, 1.0, 1000);
+}
+```
+
+其实到这里我们的全景图就可以展示的比较完美了，但是你还是只能看到一个角度，没法旋转，拖拽，调整视角，如果要把交互加上去就得用到之前提过的轨迹球算法。哎，又是一个算法，好难描述啊……
+
+## 轨迹球算法
 
 
