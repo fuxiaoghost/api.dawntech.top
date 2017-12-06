@@ -1,6 +1,13 @@
 {
     "items": [
         {
+            "id": "b0005",
+            "title": "一个简单的全景模型",
+            "desc": "如何基于WebGL一步步搭建起一个全景模型，看似简单的过程其实隐藏了很多的细节：球面分割、墨卡托坐标系、轨迹球算法……",
+            "target": "/api/static/blogs/4/4.markdown",
+            "date": "2017-12-06"
+        },
+        {
             "id": "b0004",
             "title": "iOS 基于非Case的Code Coverage系统搭建",
             "desc": "关于iOS测试的Code Coverage大致可分为两类：1、基于Case的，Xcode 7及以后的版本已原生支持，写好Case，开启“Gather coverage data”即可，操作方便简单；2、基于非Case的，主要通过gcov，lcov实现，相比于前者，操作起来就复杂一些",
