@@ -1,6 +1,13 @@
 {
     "items": [
         {
+            "id": "b0006",
+            "title": "从一个实际问题说说CAShapelayer",
+            "desc": "Core Animation图层不仅仅只有CALayer这种简单的图片和颜色绘制的功能，还有一些专用图层，如：CAShapeLayer、CATextLayer、CAGradientLayer、CAEAGLLayer、AVPlayerLayer、CAScrollLayer等。我在过去的工作中用过其中的大部分，而使用频率最高的应该就是CAShapeLayer",
+            "target": "/api/static/blogs/5/5.markdown",
+            "date": "2017-12-24"
+        },
+        {
             "id": "b0005",
             "title": "一个简单的全景模型",
             "desc": "如何基于WebGL一步步搭建起一个全景模型，看似简单的过程其实隐藏了很多的细节：球面分割、墨卡托坐标系、轨迹球算法……",
@@ -22,18 +29,18 @@
             "date": "2017-11-01"
         },
         {
-            "id": "b0002",
-            "title": "如何画出一条优雅的曲线",
-            "desc": "从一个点到一条线，看似简单的过程，其实中间做了很多的事情，抗锯齿，抖动控制，笔迹平滑，Bezier插值",
-            "target": "/api/static/blogs/1.markdown",
-            "date": "2017-03-31"
-        },
-        {
             "id": "b0001",
             "title": "如何做一个简单的滤镜",
             "desc": "从最基础的色彩知识开始，借助WebGL一步步完成一些简单的滤镜：黑白、反色、白平衡、模糊、美颜",
             "target": "/api/static/blogs/0.markdown",
             "date": "2017-09-08"
+        },
+        {
+            "id": "b0002",
+            "title": "如何画出一条优雅的曲线",
+            "desc": "从一个点到一条线，看似简单的过程，其实中间做了很多的事情，抗锯齿，抖动控制，笔迹平滑，Bezier插值",
+            "target": "/api/static/blogs/1.markdown",
+            "date": "2017-03-31"
         }
     ]
 }
