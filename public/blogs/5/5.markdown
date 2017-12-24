@@ -1,0 +1,212 @@
+# 从一个实际问题说说CAShapelayer
+Core Animation图层不仅仅只有CALayer这种简单的图片和颜色绘制的功能，还有一些专用图层，如：CAShapeLayer、CATextLayer、CAGradientLayer、CAEAGLLayer、AVPlayerLayer、CAScrollLayer等。我在过去的工作中用过其中的大部分，而使用频率最高的应该就是CAShapeLayer。
+
+CAShapeLayer是一个通过矢量图形而不是bitmap来绘制的图层子类。通过指定颜色和线宽等属性，用CGPath来指定想要绘制的形状，CAShapeLayer就能自动渲染出想要的图形。相比于CALayer直接通过Core Graphics进行内容绘制的方式，CAShapeLayer有以下一些优点：
+* CAShapeLayer使用硬件加速，绘制同一图形会比用Core Graphics快得多
+* CAShapeLayer不需要像CALayer一样创建一个寄宿图形，所以无论有多大，都不会占用太多的内存
+* CAShapeLayer做2D或者3D变换时，不会出现像素化
+* CAShapeLayer可以非常方便的进行动画操作，实现复杂的形状变换
+
+说了很多CAShapeLayer的优势，我们来看一个具体的问题，某一天的某一个产品迭代中接到这样一个需求：
+![需求](/api/static/blogs/5/1.jpg)
+* 笛卡尔2D坐标系
+* X轴Y轴根据数据实时缩放比例尺
+* 给定数据节点，通过光滑曲线串连起来
+* 曲线下面是带有颜色渐变的堆积图
+* Y轴数据最小值为0，最大值不确定
+* X轴数据为日期，最多展示15天数据
+
+并不是很复杂的系统，有很多种实现方案，这里我们要通过CAShapeLayer把它实现出来。
+
+## 数据处理
+由于我们拿到的Y轴数据的变化区间是不确定的，因此在绘图之前要做一点必要的比例尺缩放。我们限定Y轴坐标最多进行5等份展示，因此如果我们拿到的Y轴数据<5，那就按[0,1,2,3,4,5]进行划分；如果>5，就按照n=ceil(max/5)进行等分。比如max=15，则等分区间为[0,3,6,9,12,15]
+
+X轴数据有最大限定15，因此处理起来要简单的多，设X轴日期天数为n，X轴宽度为W，则X轴的等分间距xw=W/n
+
+代码实现如下：
+```
+- (void)initData {
+    _yMaxAmount = 5;
+    _maxValue = 0;
+    _xAmount = self.data.count;
+    _xInterval = (self.bounds.size.width - _insets.left - _insets.right)/(_xAmount - 1);
+    
+    [self.data enumerateObjectsUsingBlock:^(ShowDataModel * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if (obj.pageView > _maxValue) {
+            _maxValue = obj.pageView;
+        }
+    }];
+    
+    // 异常数据处理
+    if (_maxValue <= 0) {
+        _maxValue = 5;
+    }
+    
+    CGFloat height = (self.bounds.size.height - _insets.top - _insets.bottom);
+    if (_maxValue < _yMaxAmount) {
+        _yAmount = _maxValue;
+        _yInterval = height/_yAmount;
+    }else {
+        NSInteger tYAmount = ceilf((0.0 + _maxValue)/_yMaxAmount);
+        _yAmount = _yMaxAmount;
+        _yInterval = height/_yMaxAmount;
+        _maxValue = tYAmount * _yMaxAmount;
+    }
+}
+```
+
+# 绘制坐标轴
+坐标轴不需要频繁的变换，也不需要进行动画，因此我们简单的通过Core Graphics来完成
+```
+- (void)drawRect:(CGRect)rect {
+    [super drawRect:rect];
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Y轴坐标
+    CGContextMoveToPoint(context, _insets.left, _insets.top - 10);
+    CGContextAddLineToPoint(context, _insets.left, self.bounds.size.height - _insets.bottom);
+    CGContextSetLineWidth(context, SCREEN_SCALE);
+    CGContextSetRGBStrokeColor(context, 0.9, 0.9, 0.9, 1.0);
+    CGContextStrokePath(context);
+    
+    // X轴坐标
+    CGContextMoveToPoint(context, _insets.left, self.bounds.size.height - _insets.bottom);
+    CGContextAddLineToPoint(context, self.bounds.size.width - _insets.right, self.bounds.size.height - _insets.bottom);
+    
+    // X轴坐标等间隔短线
+    for (NSInteger i = 0; i < _xAmount; i++) {
+        CGContextMoveToPoint(context, _insets.left + _xInterval * i, self.bounds.size.height - _insets.bottom);
+        CGContextAddLineToPoint(context, _insets.left + _xInterval * i, self.bounds.size.height - _insets.bottom - 2.5);
+    }
+    CGContextSetLineWidth(context, SCREEN_SCALE);
+    CGContextSetRGBStrokeColor(context, 0.9, 0.9, 0.9, 1.0);
+    CGContextStrokePath(context);
+    
+    // Y轴坐标等间隔长横线
+    for (NSInteger i = 1; i < _yAmount + 1; i++) {
+        CGContextMoveToPoint(context, _insets.left, self.bounds.size.height - _insets.bottom - i * _yInterval);
+        CGContextAddLineToPoint(context, self.bounds.size.width - _insets.right, self.bounds.size.height - _insets.bottom - i * _yInterval);
+    }
+    CGContextSetLineWidth(context, SCREEN_SCALE);
+    CGContextSetRGBStrokeColor(context, 0.968, 0.968, 0.968, 1.0);
+    CGContextStrokePath(context);
+}
+```
+没有多少需要解释的，简单的直线绘制
+
+## 绘制曲线
+接下来就用到CAShapeLayer了，我们需要绘制一条具有一定宽度的连续的曲线，基本设置如下：
+```
+self.lineLayer = [CAShapeLayer layer];
+self.lineLayer.lineWidth = 2;
+self.lineLayer.fillColor = [UIColor clearColor].CGColor;
+self.lineLayer.strokeColor = COLOR_NAV_BAR.CGColor;
+[self.layer addSublayer:self.lineLayer];
+self.lineLayer.strokeStart = 0;
+self.lineLayer.strokeEnd = 1.0;
+```
+我们还需要一个path来指定曲线的路径，我们通过UIBezierPath来设定。要使用Bezier曲线，就需要解决控制点的问题。这里的曲线绘制不要求非常高的精度，因此控制点的选取可以简单的采取如下方案：设上一个数据点为fp，当前数据点为p，则控制点c0 = ((fp.x + px)/2, fp.y))，c1 = ((fp.x + px)/2, p.y))。当然这样计算控制点是无法保证整条曲线的连续性的，要保证整条曲线的连续性可参考之前写的一篇文章:[如何画出一条优雅的曲线
+](http://dawntech.top/article/b0002)
+
+```
+UIBezierPath *linePath = [UIBezierPath bezierPath];
+    
+for (NSInteger i = 0; i < _maxPoint; i++) {
+    CGPoint p = [self pointAtIndex:i scale:1];
+    if (i == 0) {
+        [linePath moveToPoint:p];
+        [areaPath moveToPoint:p];
+    }else if(i < self.data.count){
+        CGPoint fp = [self pointAtIndex:i - 1 scale:1];
+        CGPoint controlPoint1 = CGPointMake((fp.x + p.x)/ 2 , fp.y);
+        CGPoint controlPoint2 = CGPointMake((fp.x + p.x)/ 2, p.y);
+        [linePath addCurveToPoint:p controlPoint1:controlPoint1 controlPoint2:controlPoint2];
+    }else {
+        [linePath addLineToPoint:p];
+    }
+}
+
+self.lineLayer.path = linePath.CGPath;
+```
+给CAShapeLayer设置path之后曲线就绘制完成了，简单快速
+
+## 绘制堆积图
+曲线已经绘制完成了，接下来绘制曲线下面的堆积图。如果堆积图只是一个颜色那么绘制起来要简单的多，只需要把上一步绘制的曲线闭合之后填充颜色就能得到我们需要的堆积图。带有过度颜色的堆积图绘制起来需要一点技巧。我们先用一个CAGradientLayer作为过渡颜色的画板，然后通过CAShapeLayer完成堆积图形状的绘制，最后把CAShapeLayer赋值给CAGradientLayer的mask。这也是CAShapeLayer的另一个用法，你可以通过CAShapeLayer绘制出想要的形状，然后把它赋值给任何layer的mask，就可以得到各种新奇精彩的图形。
+```
+self.areaMaskLayer = [CAShapeLayer layer];
+self.areaMaskLayer.lineWidth = 0;
+self.areaMaskLayer.fillColor = [UIColor redColor].CGColor;
+self.areaMaskLayer.strokeColor = [UIColor clearColor].CGColor;
+self.areaMaskLayer.strokeStart = 0;
+self.areaMaskLayer.strokeEnd = 0;
+        
+self.areaLayer = [CAGradientLayer layer];
+[self.areaLayer setColors :[NSArray arrayWithObjects:(id)[[UIColor colorWithHexStr:@"#00cdd1" Alpha:0.3] CGColor ],(id)[[UIColor colorWithHexStr:@"#00cdd1" Alpha:0.0] CGColor],nil]];
+[self.areaLayer setEndPoint:CGPointMake (0.5,1)];
+[self.areaLayer setStartPoint:CGPointMake(0.5,0)];
+[self.layer addSublayer:self.areaLayer];
+[self.areaLayer setMask:self.areaMaskLayer];
+```
+如上初始化颜色渐变图层CAGradientLayer，和CAGradientLayer图层的mask图层CAShapeLayer
+
+```
+UIBezierPath *areaPath = [UIBezierPath bezierPath];
+    
+for (NSInteger i = 0; i < _maxPoint; i++) {
+    CGPoint p = [self pointAtIndex:i scale:1];
+    if (i == 0) {
+        [areaPath moveToPoint:p];
+    }else if(i < self.data.count){
+        CGPoint fp = [self pointAtIndex:i - 1 scale:1];
+        CGPoint controlPoint1 = CGPointMake((fp.x + p.x)/ 2 , fp.y);
+        CGPoint controlPoint2 = CGPointMake((fp.x + p.x)/ 2, p.y);
+        [areaPath addCurveToPoint:p controlPoint1:controlPoint1 controlPoint2:controlPoint2];
+    }else {
+        [areaPath addLineToPoint:p];
+    }
+}
+    
+CGPoint p0 = CGPointMake(self.bounds.size.width - _insets.right, self.bounds.size.height - _insets.bottom);
+[areaPath addLineToPoint:p0];
+    
+CGPoint p1 = CGPointMake(_insets.left, self.bounds.size.height - _insets.bottom);
+[areaPath addLineToPoint:p1];
+    
+[areaPath closePath];
+
+self.areaMaskLayer.path = areaPath.CGPath;
+```
+
+与linePath唯一不同的地方就是areaPath需要把曲线封闭起来。这样曲线下面的堆积图也绘制完成了，跟曲线绘制一样简单方便。
+
+## 曲线动画
+上面已经介绍了关于CAGradientLayer绘图的相关知识，当然CAGradientLayer的强大功能还不止如此，接下来我们看下CAGradientLayer的动画功能
+![](/api/static/blogs/5/2.GIF)
+
+如上我们希望在数据切换的时候能够以更加流畅的方式体现出来，曲线能从一种形态平滑的过渡到另一种形态。这个时候我们就需要用到CAGradientLayer的path的动画。我们需要提供CAGradientLayer变换之前的path和变换之后的path，然后构建path的动画。
+```
+- (void)lineChangeAnimation:(CGPathRef)pathRef {
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"path"];
+    animation.fromValue = (__bridge id)self.lineLayer.path;
+    animation.toValue = (__bridge id)pathRef;
+    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+    animation.duration = .5;
+    [self.lineLayer addAnimation:animation forKey:@"path"];
+    self.lineLayer.path = pathRef;
+}
+```
+是不是很简单，只要设置好fromValue和toValue就可以了。
+
+## 曲线未曾使用的动画
+除了上面讲的CAGradientLayer的path的动画，CAGradientLayer还提供基于strokeEnd的动画。CAGradientLayer的strokeStart和strokeEnd代表了曲线的起始位置和终止位置。可以通过修改strokeEnd调整CAGradientLayer的绘制进度。
+```
+CABasicAnimation *pathAnima = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+pathAnima.duration = 3.0f;
+pathAnima.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+pathAnima.fromValue = [NSNumber numberWithFloat:0.0f];
+pathAnima.toValue = [NSNumber numberWithFloat:1.0f];
+pathAnima.fillMode = kCAFillModeForwards;
+[self.lineLayer addAnimation:pathAnima forKey:@"strokeEndAnimation"];
+self.lineLayer.strokeEnd = 1.0f;
+```
+以上你可以看到整个曲线的绘制过程
