@@ -3,8 +3,8 @@
 对于日渐庞大的工程项目，保持代码的整洁规范风格一致并不是一件很容易的事情。每个人都有自己的编码规范和习惯用法，通过简单的书面规范限定和code review是解决不了根本问题的。在Xcode还能使用插件的时候，[ClangFormat-Xcode](https://github.com/travisjeffery/ClangFormat-Xcode)是一个不错的选择。但是Xcode 8之后就已经不支持第三方插件了，当然也有一些办法可以绕开这种限制，但是会降低Xcode的安全性。因此只能另寻思路来解决问题。
 ## 思路
 代码格式化的工具我们选用[clangformat](https://clang.llvm.org/docs/ClangFormat.html)，非常成熟的工具，不赘述。接下来就是寻找一个格式化的切入点，由于代码本身是托管在公司的gitlab上，因此首先想到的思路就是通过gitlab本身的机制来实现代码的自动格式化。gitlab本身有两种hook机制，客户端的和服务端的，客户端的先被触发，服务端的后触发。客户端hook由诸如提交和合并这样的操作所调用，而服务器端hook作用于诸如接收被推送的提交这样的联网操作，显然客户端的hook上更容易来完成我们想做的事情。
-## GitLab hooks
-hook都被存储在git目录下的hooks子目录中。git本地项目的.git/hooks。git初始化的时候会在该目录下创建一些实例脚本来告诉你如何修改，这些脚本都是以.sample结尾，如果你想启用它，直接移除后缀名即可。
+## GitLab hooks
+hook都被存储在git目录下的hooks子目录中。git本地项目的.git/hooks。git初始化的时候会在该目录下创建一些实例脚本来告诉你如何修改，这些脚本都是以.sample结尾，如果你想启用它，直接移除后缀名即可。
 * pre-commit 在键入提交信息前运行
 * prepare-commit-msg 在启动提交信息编辑器之前，默认信息被创建之后运行
 * commit-msg 接收一个参数，此参数即上文提到的，存有当前提交信息的临时文件的路径
@@ -27,7 +27,7 @@ hook都被存储在git目录下的hooks子目录中。git本地项目的.git/ho
 
 ![](1.svg)
 
-流程并不复杂，代码发生变更之后在git commit的时候通过gitlab的hook机制在pre-commit拦截提交，通过我们熟悉的clang-format来完成代码的格式化，成功之后回写源文件，提交。
+流程并不复杂，代码发生变更之后在git commit的时候通过gitlab的hook机制在pre-commit拦截提交，通过我们熟悉的clang-format来完成代码的格式化，成功之后回写源文件，提交。
 
 ## 方案
 
@@ -37,13 +37,13 @@ hook都被存储在git目录下的hooks子目录中。git本地项目的.git/ho
 
 ![](2.svg)
 
-其中有一个setup-repo脚本，它做了几个事情：
+其中有一个setup-repo脚本，它做了几个事情：
 * 在工程目录下创建.git/hooks/pre-commit，并写入执行脚本
-* 在工程目录下创建.clang-format的符号链接
+* 在工程目录下创建.clang-format的符号链接
 
 这样就可以在git commit 的时候完成整个代码格式化的流程
 
-为了尽量减少其他开发人员的安装和使用成本，对spacecommander做了一下改造，通过Cocoapods的方式完成部署：
+为了尽量减少其他开发人员的安装和使用成本，对spacecommander做了一下改造，通过Cocoapods的方式完成部署：
 ```
 platform :ios, '8.0'
 target 'XXXXX' do
@@ -82,6 +82,6 @@ function ensure_hook_is_installed() {
   fi
 }
 ```
-format-objc-hook只会检测当前代码是否已经完成代码格式化，format-objc-files可以直接格式化代码。我们这里换成了format-objc-files，可以保证在pre-commit中直接完成代码格式化。
+format-objc-hook只会检测当前代码是否已经完成代码格式化，format-objc-files可以直接格式化代码。我们这里换成了format-objc-files，可以保证在pre-commit中直接完成代码格式化。
 
 简单的小方案可以解决我们的大问题
