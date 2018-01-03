@@ -25,7 +25,7 @@ hook都被存储在git目录下的hooks子目录中。git本地项目的.git/hoo
 
 ## 流程
 
-![](1.svg)
+![](/api/static/blogs/6/1.svg)
 
 流程并不复杂，代码发生变更之后在git commit的时候通过gitlab的hook机制在pre-commit拦截提交，通过我们熟悉的clang-format来完成代码的格式化，成功之后回写源文件，提交。
 
@@ -35,7 +35,7 @@ hook都被存储在git目录下的hooks子目录中。git本地项目的.git/hoo
 
 我们看一下它的文件结构
 
-![](2.svg)
+![](/api/static/blogs/6/2.svg)
 
 其中有一个setup-repo脚本，它做了几个事情：
 * 在工程目录下创建.git/hooks/pre-commit，并写入执行脚本
