@@ -1,25 +1,25 @@
 # 从一个实际问题说说CAShapelayer
 Core Animation图层不仅仅只有CALayer这种简单的图片和颜色绘制的功能，还有一些专用图层，如：CAShapeLayer、CATextLayer、CAGradientLayer、CAEAGLLayer、AVPlayerLayer、CAScrollLayer等。我在过去的工作中用过其中的大部分，而使用频率最高的应该就是CAShapeLayer。
 
-CAShapeLayer是一个通过矢量图形而不是bitmap来绘制的图层子类。通过指定颜色和线宽等属性，用CGPath来指定想要绘制的形状，CAShapeLayer就能自动渲染出想要的图形。相比于CALayer直接通过Core Graphics进行内容绘制的方式，CAShapeLayer有以下一些优点：
+CAShapeLayer是一个通过矢量图形而不是bitmap来绘制的图层子类。通过指定颜色和线宽等属性，用CGPath来指定想要绘制的形状，CAShapeLayer就能自动渲染出想要的图形。相比于CALayer直接通过Core Graphics进行内容绘制的方式，CAShapeLayer有以下一些优点：
 * CAShapeLayer使用硬件加速，绘制同一图形会比用Core Graphics快得多
 * CAShapeLayer不需要像CALayer一样创建一个寄宿图形，所以无论有多大，都不会占用太多的内存
 * CAShapeLayer做2D或者3D变换时，不会出现像素化
-* CAShapeLayer可以非常方便的进行动画操作，实现复杂的形状变换
+* CAShapeLayer可以非常方便的进行动画操作，实现复杂的形状变换
 
-说了很多CAShapeLayer的优势，我们来看一个具体的问题，某一天的某一个产品迭代中接到这样一个需求：
+说了很多CAShapeLayer的优势，我们来看一个具体的问题，某一天的某一个产品迭代中接到这样一个需求：
 ![需求](/api/static/blogs/5/1.jpg)
 * 笛卡尔2D坐标系
-* X轴Y轴根据数据实时缩放比例尺
+* X轴Y轴根据数据实时缩放比例尺
 * 给定数据节点，通过光滑曲线串连起来
 * 曲线下面是带有颜色渐变的堆积图
 * Y轴数据最小值为0，最大值不确定
 * X轴数据为日期，最多展示15天数据
 
-并不是很复杂的系统，有很多种实现方案，这里我们要通过CAShapeLayer把它实现出来。
+并不是很复杂的系统，有很多种实现方案，这里我们要通过CAShapeLayer把它实现出来。
 
 ## 数据处理
-由于我们拿到的Y轴数据的变化区间是不确定的，因此在绘图之前要做一点必要的比例尺缩放。我们限定Y轴坐标最多进行5等份展示，因此如果我们拿到的Y轴数据<5，那就按[0,1,2,3,4,5]进行划分；如果>5，就按照n=ceil(max/5)进行等分。比如max=15，则等分区间为[0,3,6,9,12,15]
+由于我们拿到的Y轴数据的变化区间是不确定的，因此在绘图之前要做一点必要的比例尺缩放。我们限定Y轴坐标最多进行5等份展示，因此如果我们拿到的Y轴数据<5，那就按[0,1,2,3,4,5]进行划分；如果>5，就按照n=ceil(max/5)进行等分。比如max=15，则等分区间为[0,3,6,9,12,15]
 
 X轴数据有最大限定15，因此处理起来要简单的多，设X轴日期天数为n，X轴宽度为W，则X轴的等分间距xw=W/n
 
@@ -181,7 +181,8 @@ self.areaMaskLayer.path = areaPath.CGPath;
 
 ## 曲线动画
 上面已经介绍了关于CAGradientLayer绘图的相关知识，当然CAGradientLayer的强大功能还不止如此，接下来我们看下CAGradientLayer的动画功能
-![](/api/static/blogs/5/2.GIF)
+
+![曲线动画](/api/static/blogs/5/2.GIF)
 
 如上我们希望在数据切换的时候能够以更加流畅的方式体现出来，曲线能从一种形态平滑的过渡到另一种形态。这个时候我们就需要用到CAGradientLayer的path的动画。我们需要提供CAGradientLayer变换之前的path和变换之后的path，然后构建path的动画。
 ```
