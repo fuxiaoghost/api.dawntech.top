@@ -1,6 +1,13 @@
 {
     "items": [
         {
+            "id": "b0007",
+            "title": "Objective-C 项目的自动代码格式化",
+            "desc": "对于日渐庞大的工程项目，保持代码的整洁规范风格一致并不是一件很容易的事情。每个人都有自己的编码规范和习惯用法，通过简单的书面规范限定和code review是解决不了根本问题的。我们需要一种更有效的方案……",
+            "target": "/api/static/blogs/6/6.markdown",
+            "date": "2018-01-03"
+        },
+        {
             "id": "b0006",
             "title": "从一个实际问题说说CAShapelayer",
             "desc": "Core Animation图层不仅仅只有CALayer这种简单的图片和颜色绘制的功能，还有一些专用图层，如：CAShapeLayer、CATextLayer、CAGradientLayer、CAEAGLLayer、AVPlayerLayer、CAScrollLayer等。我在过去的工作中用过其中的大部分，而使用频率最高的应该就是CAShapeLayer",
