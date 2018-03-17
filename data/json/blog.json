@@ -1,6 +1,13 @@
 {
     "items": [
         {
+            "id": "b0008",
+            "title": "以太坊私链初探",
+            "desc": "最近在学习区块链的技术，初步打算从[go-ethereum](https://github.com/ethereum/go-ethereum)入手，学习一下以太坊的设计思想顺便把GoLang入个门(简单、直接明了，是目前这个阶段需要追求的东西)",
+            "target": "/api/static/blogs/8/8.markdown",
+            "date": "2018-03-17"
+        },
+        {
             "id": "b0007",
             "title": "Objective-C 项目的自动代码格式化",
             "desc": "对于日渐庞大的工程项目，保持代码的整洁规范风格一致并不是一件很容易的事情。每个人都有自己的编码规范和习惯用法，通过简单的书面规范限定和code review是解决不了根本问题的。我们需要一种更有效的方案……",

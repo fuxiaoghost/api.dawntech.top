@@ -1,0 +1,239 @@
+最近在学习区块链的技术，初步打算从[go-ethereum](https://github.com/ethereum/go-ethereum)入手，学习一下以太坊的设计思想顺便把GoLang入个门(简单、直接明了，是目前这个阶段需要追求的东西)。
+
+手上有一个台阿里云的服务器(单核1G)，性能一般，平时就用来挂着自己的个站，工作不饱和，打算在上面搭一条以太坊的私链，方便学习。
+
+# 环境
+服务器：单核CPU，1G内存，40G磁盘
+OS：CentOS 
+OS发行版本：3.10.0-693.11.1.el7.x86_64
+软件包管理工具：yum
+# go-ethereum源码下载
+以太坊的节点有两个版本，基于c++编写的[cpp-ethereum](https://github.com/ethereum/cpp-ethereum)和基于go编写的[go-ethereum](https://github.com/ethereum/go-ethereum)，这里选择go语言版本，主要还是希望能顺便熟悉一下这门语言
+选择一个最新的release版本[1.8](https://github.com/ethereum/go-ethereum/archive/release/1.8.zip)，下载到服务器，位置随意，这里我们选择放在/usr/src(存放源码)下。
+```
+cd /usr/src/
+wget https://github.com/ethereum/go-ethereum/archive/release/1.8.zip
+```
+![1521190470392.jpg](https://upload-images.jianshu.io/upload_images/3018197-9b6e6e1dc41d4fb9.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+解压zip包得到我们需要的源码文件
+```
+unzip 1.8.zip
+```
+![1521195373874.jpg](https://upload-images.jianshu.io/upload_images/3018197-aacdb0a423eb0ec6.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+# 安装go语言环境
+```
+yum install golang
+```
+![1521195682289.jpg](https://upload-images.jianshu.io/upload_images/3018197-059439efd0f64fad.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+# 编译go-ethereum源码
+```
+cd go-ethereum-release-1.8/
+make geth
+```
+![1521197127296.jpg](https://upload-images.jianshu.io/upload_images/3018197-72c07f30b802ef75.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+到这里我们就得到了需要的以太坊节点程序/go-ethereum-release-1.8/build/bin/geth
+可以把编译好的程序拷贝到/usr/bin目录下，方便运行
+# 创建初始区块
+以太坊私链的初始区块需要手动创建起来，否则整个区块链没法持续运行，我们从官网得到一段初始配置
+```
+{
+  "config": {
+        "chainId": 0,
+        "homesteadBlock": 0,
+        "eip155Block": 0,
+        "eip158Block": 0
+    },
+  "alloc"      : {},
+  "coinbase"   : "0x0000000000000000000000000000000000000000",
+  "difficulty" : "0x20000",
+  "extraData"  : "",
+  "gasLimit"   : "0x2fefd8",
+  "nonce"      : "0x0000000000000042",
+  "mixhash"    : "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "parentHash" : "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp"  : "0x00"
+}
+```
+创建一个文件，并复制初始配置进去
+```
+touch init.json
+```
+接下来就可以完成初始区块的配置了
+```
+geth  --datadir chaindata  init init.json
+```
+--datadir 参数指定区块链的数据存储位置，可以根据需求自己指定
+# 启动区块链并开放RPC接口
+```
+geth --rpc --rpcaddr "*.*.*.*" --rpccorsdomain "*" --datadir "chaindata" --rpcport "8545" --rpcapi "db,eth,net,web3" --networkid 31415926 console 2>>log.txt
+
+--rpc 启动RPC协议
+--rpcaddr 指定服务器ip地址
+--rpccorsdomain 设置允许访问的域名
+--datadir 区块链数据存储位置，要与初始化时保持一致
+--rpcport PRC协议接口
+--rpcapi RPC支持的API
+--networkid 区块链网络ID，用于发现节点
+最后把日志重定向到log.txt文件中，方便我们查看
+```
+当然还需要去阿里云的服务器配置中把TCP的8545端口打开
+![1521198807402.jpg](https://upload-images.jianshu.io/upload_images/3018197-4411f144e338901a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+到这里节点就已经启动了
+# 创建账户并启动挖矿
+```
+创建账户，指定密码
+personal.newAccount('pwd')
+绑定账户到挖矿程序
+miner.setEtherbase(eth.accounts[0])
+开启挖矿，指定线程数
+miner.start(2)
+停止挖矿
+miner.stop()
+```
+如果挖矿启动失败，可以检查一下是否绑定过账户miner.setEtherbase(eth.accounts[0])
+这里miner.start(2)可以根据机器自身的性能指定需要启动的线程数。但是我在启动miner之后并没有开始挖矿，也没有报错，仔细阅读了以太坊的相关资料之后发现正常情况下以太坊节点是通过POW(proof-of-work)的方式产生新的区块，如果机器性能比较低可能并不会产生新的区块，或者生成新区块的速度会非常慢。
+
+如果单纯是为了测试开发使用，可以通过--dev参数初始化一条测试私链。--dev参数会创建一个使用POA(proof-of-authority)的共识网络，默认预分配一个开发者账户并且会自动开启挖矿。
+可以通过下面的方式直接创建：
+```
+geth --rpc --rpcaddr "*.*.*.*" --rpccorsdomain "*" --datadir "chaindata" --rpcport "8545" --rpcapi "db,eth,net,web3" --networkid 31415926 --dev console 2>>log.txt
+```
+
+# 用pm2监控geth
+为了保证终端回话关闭之后geth还能正常运行，并能处理RPC请求必须要以守护进程(daemon)的方式启动，这里有几种方式：
+* nohup 命令
+* Systemd 工具
+* pm2 工具
+当然还有其他的方式，这三种是我比较常用的，因为机器上有个node的服务正在用pm2管理，这里也正好借用pm2工具管理一下geth
+首先创建一个pm2启动配置文件:
+
+```
+touch start.json
+
+配置参数
+{
+    "name": "geth",
+    "script": "geth",
+    "args": "--rpc --rpcaddr '*.*.*.*' --rpccorsdomain '*' --datadir 'chaindata' --rpcport '8545' --rpcapi 'db,eth,net,web3' --networkid 31415926 --dev",
+    "log_date_format": "YYYY-MM-DD HH:mm Z",
+    "merge_logs": false,
+    "watch": false,
+    "max_restarts": 10,
+    "exec_interpreter": "none",
+    "exec_mode": "fork_mode"
+}
+
+pm2 start start.json
+```
+
+![1521259248462.png](https://upload-images.jianshu.io/upload_images/3018197-0d03bf72c1e7d56e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+geth以daemon的方式启动并通过pm2进行监控，接下来就可以通过RPC的方式通信了
+
+# RPC通信
+以太坊RPC的接口列表可以参考：https://ethereum.gitbooks.io/frontier-guide/content/rpc.html
+这里遇到一个巨大的坑，感谢安全工程师[何处不可怜](https://www.jianshu.com/u/5184ef7a2c10)系统化的方法的帮助，让我能一步步定位到问题。
+我们以eth_accounts试一下：
+因为服务器IP地址绑定了域名，然后调用方式可以这样写：
+```
+curl  -X POST --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' http://domain:8545
+```
+然后就不正常了，直接报错
+```
+invalid host specified
+```
+感觉应该是域名解析的问题，但是试了一下其他端口的服务一切正常，去DNS解析服务器看过也没问题。然后更换服务端口依旧报错。似乎问题不在DNS解析和端口上
+前端抓包显示403，
+后端tcptump监听结果
+```
+14:54:50.651476 IP *.*.*.*.55747 > dawn.8545: Flags [P.], seq 2542259482:2542260075, ack 1963893059, win 4100, options [nop,nop,TS val 1412772142 ecr 4250673300], length 593
+14:54:50.652009 IP dawn.8545 > *.*.*.*.55747: Flags [P.], seq 1:181, ack 593, win 255, options [nop,nop,TS val 4250708302 ecr 1412772142], length 180
+14:54:50.657020 IP *.*.*.*.55747 > dawn.8545: Flags [.], ack 181, win 4094, options [nop,nop,TS val 1412772147 ecr 4250708302], length 0
+14:54:50.685458 IP *.*.*.*.55747 > dawn.8545: Flags [P.], seq 593:1161, ack 181, win 4096, options [nop,nop,TS val 1412772176 ecr 4250708302], length 568
+14:54:50.685546 IP dawn.8545 > *.*.*.*.55747: Flags [P.], seq 181:361, ack 1161, win 264, options [nop,nop,TS val 4250708336 ecr 1412772176], length 180
+14:54:50.689829 IP *.*.*.*.55747 > dawn.8545: Flags [.], ack 361, win 4090, options [nop,nop,TS val 1412772179 ecr 4250708336], length
+```
+有来有往，似乎又没啥问题。
+修改请求地址，换ip直接访问，200，居然通了。总结一下尝试的结果：
+* DNS解析正常
+* 端口正常
+* IP访问正常(服务正常)
+* 域名访问异常
+在服务正常DNS正常的情况想通过域名请求不到，问题很可能是服务本身的限制。参考wiki，---rpccorsdomain参数配置为“*”没有问题，允许所有域名访问。然后再找似乎也没有可用的参数了。这个时候只能读一下源码，看看是不是能找到思路。之后就是找到[go-ethereum](https://github.com/ethereum/go-ethereum)RPC模块的代码，一点点读。最后发现了这么一段代码
+```
+// ServeHTTP serves JSON-RPC requests over HTTP, implements http.Handler
+func (h *virtualHostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// if r.Host is not set, we can continue serving since a browser would set the Host header
+	if r.Host == "" {
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	host, _, err := net.SplitHostPort(r.Host)
+	if err != nil {
+		// Either invalid (too many colons) or no port specified
+		host = r.Host
+	}
+	if ipAddr := net.ParseIP(host); ipAddr != nil {
+		// It's an IP address, we can serve that
+		h.next.ServeHTTP(w, r)
+		return
+
+	}
+	// Not an ip address, but a hostname. Need to validate
+	if _, exist := h.vhosts["*"]; exist {
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	if _, exist := h.vhosts[host]; exist {
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	http.Error(w, "invalid host specified", http.StatusForbidden)
+}
+```
+```
+// DefaultConfig contains reasonable default settings.
+var DefaultConfig = Config{
+	DataDir:          DefaultDataDir(),
+	HTTPPort:         DefaultHTTPPort,
+	HTTPModules:      []string{"net", "web3"},
+	HTTPVirtualHosts: []string{"localhost"},
+	WSPort:           DefaultWSPort,
+	WSModules:        []string{"net", "web3"},
+	P2P: p2p.Config{
+		ListenAddr: ":30303",
+		MaxPeers:   25,
+		NAT:        nat.Any(),
+	},
+}
+```
+到这里应该差不多能猜到，有设置vhosts的地方，然后用了一个比较笨的办法
+```
+[dawn@dawn ~]$ geth --help|grep vhosts
+  --rpcvhosts value      Comma separated list of virtual hostnames from which to accept requests (server enforced). Accepts '*' wildcard. (default: "localhost")
+[dawn@dawn ~]$
+```
+果然是有--rpcvhosts参数可以设置，修改配置
+```
+"args": "--rpc --rpcaddr '*.*.*.*' --rpccorsdomain '*' --datadir 'chaindata' --rpcport '8545' --rpcapi 'db,eth,net,web3' --networkid 31415926 --dev --rpcvhosts '*'"
+```
+重启服务
+```
+pm2 restart start.json
+```
+再次通过域名访问，200，果然通了，但是返回：
+```
+invalid content type, only application/json is supported
+```
+这就好处理了，增加content-type设置
+```
+请求
+curl -H "Content-Type: application/json" -X POST --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' http://domain:8545
+
+返回数据
+{"jsonrpc":"2.0","id":1,"result":["0x8018e73d7efc27297ea313e8bd250a02c6ca9f14","0xe3207f6fb2816fead3ccba99ebd2ea9f3ff22231"]}
+```
+到这里一切就都调通了，后续的链上操作就可以通过RPC服务直接操作了。
+
