@@ -1,6 +1,13 @@
 {
     "items": [
         {
+            "id": "b0009",
+            "title": "以太坊智能合约编写技巧",
+            "desc": "以太坊智能合约编写技巧，一遍学习一遍总结",
+            "target": "/api/static/blogs/9/9.markdown",
+            "date": "2018-04-16"
+        },
+        {
             "id": "b0008",
             "title": "以太坊私链初探",
             "desc": "最近在学习区块链的技术，初步打算从[go-ethereum](https://github.com/ethereum/go-ethereum)入手，学习一下以太坊的设计思想顺便把GoLang入个门(简单、直接明了，是目前这个阶段需要追求的东西)",

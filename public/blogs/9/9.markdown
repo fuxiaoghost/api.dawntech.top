@@ -1,0 +1,147 @@
+# 函数
+```
+function (<parameter types>) [private|public|internal|external][modifier][pure|constant|view|payable] [returns (<return types>)]
+```
+Solidity的函数结构如上
+## 函数可见性分析
+* public - 任意访问
+* private - 仅当前合约内
+* internal - 仅当前合约及所继承的合约
+* external - 仅外部访问（在内部也只能用外部访问方式访问）
+## 函数访问限制
+我们可以通过modifier设置函数的访问限定，"_;" 表示后续函数的代码
+```
+/**
+ * Only the owner of contract
+ */ 
+modifier onlyOwner {
+    require(msg.sender == owner);
+    _;
+}
+
+/**
+ * transfer the ownership to other
+ * - Only the owner can operate
+ */ 
+function transferOwnership(address _newOwner) public onlyOwner {
+    newOwner = _newOwner;
+}
+```
+## 变量访问限定
+在Solidity中constant、view、pure三个函数修饰词的作用是告诉编译器，函数不改变/不读取状态变量，这样函数执行就可以不消耗gas了，因为不需要矿工来验证。在Solidity v4.17之前，只有constant，后续版本将constant拆成了view和pure。view的作用和constant一模一样，可以读取状态变量但是不能改；pure则更为严格，pure修饰的函数不能改也不能读状态变量，智能操作函数内部变量，否则编译通不过。
+```
+pure
+function add(uint a, uint b) internal pure returns (uint c) {
+    c = a + b;
+    require(c >= a); 
+}
+
+constant
+function allowance(address tokenOwner, address spender) public constant returns (uint remaining) {
+    return allowed[tokenOwner][spender];
+}
+
+view
+function blacklist() public onlyOwner view returns (address[]) {
+    return _blacklist;
+}
+```
+## payable标识
+函数上增加payable标识，即可接收ether，并会把ether存在当前合约
+```
+function deposit() public payable {
+}
+```
+合约调用deposit函数时会要求输入转账ETH数量
+# 调用已发布合约
+只要知道链上合约地址和函数定义即可调用
+```
+contract TripioToken {
+    function transfer(address _to, uint256 _value) public returns (bool);
+}
+
+import "./TripioToken.sol";
+contract Points {
+    function recycle(uint tokens) public onlyOwner returns(bool) {
+        address tripioTokenContract = 0x365068f4133F4f3B2b77dD30EEeb41B5552D4Ebd;
+        TripioToken tripio = TripioToken(tripioTokenContract);
+        tripio.transfer(owner, tokens);
+        emit Recycle(owner, tokens);
+    }
+}
+```
+# 合约内创建合约
+```
+contract ERC20 {
+}
+
+import "./ERC20.sol";
+contract Points {
+    function createPointsContract() public returns(address) {
+        address erc20 = new ERC20();
+        return erc20;
+    }
+}
+```
+
+# 删除映射和数组
+mapping是一种key-value存储的结构，可以通过key访问和修改value，但是mapping结构并不提供遍历所有key和value的接口。
+```
+mapping(address => uint) m;
+delete m;
+```
+mapping不能通过自身结构遍历所有的key-value，直接删除mapping会报错
+```
+mapping(address => uint) m;
+delete m[key];
+```
+mapping结构只能按key删除
+
+数组是可以提供所有value的遍历机制的，因此数组是可以直接删除的，对于定长数组
+```
+uint[5] T = [1, 2, 3, 4, 5];
+delete T;
+uint256[5]: 0, 0, 0, 0, 0
+```
+删除操作是将数组内所有元素置为初值，对于变长数组
+```
+uint a = new uint[](7);
+a[0]  = 1;
+a[1] = 2;
+delete a;
+a.length: 0
+```
+删除操作只会把length置为0
+删除操作也可以只针对数组中的元素
+```
+uint a = new uint[](3);
+a[0]  = 1;
+a[1] = 2;
+a[2] = 3;
+delete a[0];
+uint256[3]: 0, 2, 3
+```
+元素删除只是赋值，并没有移动元素
+
+当mapping或者数组非常大时维护他们将变得非常消耗gas，不过清理空间可以获得gas的返还。但是无特别意义的数组整理和删除只会消耗更多gas，因此需要针对业务实现谨慎设计。一般的设计原则是：能复用就复用，不要主动清理；慎用数组的遍历；
+# require & assert
+当发生require类型异常时，Solidity会执行一个回退操作；当发生assert类型异常时，Solidity会执行一个无效操作。在上述两种情况下，EVM都会撤回所有的状态改变，让整个交易没有任何影响。不同的是assert异常发生时会继续消耗gas，require异常发生后不会消耗gas。在做权限控制，条件判断时尽量多采用require
+```
+function div(uint a, uint b) internal pure returns (uint c) {
+  	// Avoid zero denominator
+	require(b > 0);     
+	c = a / b;  
+}
+
+function exchange(address _contract, uint _tokens, uint _seconds) public returns (bool) {
+    require(exchangeable);
+	require(contracts[_contract].owner == msg.sender && _tokens > 0);
+
+	...
+	return true;
+}
+```
+
+# To be continued ...
+
+
