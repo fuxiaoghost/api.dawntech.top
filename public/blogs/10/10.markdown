@@ -1,0 +1,379 @@
+# DApp架构设计
+
+![DApp架构.png](https://upload-images.jianshu.io/upload_images/3018197-122a660b53f960ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+如上图，DApp的架构我们可以简单分为以上三种类型：轻钱包模式、重钱包模式和兼容模式。
+
+## 轻钱包模式
+
+轻钱包模式下我们需要有一个开放Http RPC协议的节点与钱包通信，这个节点可以是任意链上的节点。轻钱包通常会作为一个浏览器插件存在，插件在运行时会自动注入Web3框架，DApp可以通过Web3与区块链节点通信。当DApp只是单纯的获取数据时是不需要钱包介入的，但是当DApp需要发送交易到链上时需要通过钱包完成对交易签名的过程。
+优点：不需要用户同步区块链节点就可以使用
+缺点：需要一个公开的节点提供服务，可能会存在安全性问题
+
+## 重钱包模式
+
+重钱包会自己同步并持有一个区块链节点，提供一个浏览器环境，其他与钱包相似。
+优点：自己持有并同步节点，安全性高
+缺点：需要持有一个全量的区块链节点
+
+## 兼容模式
+
+兼容模式可以在轻钱包和重钱包下同时使用，与钱包通信的节点可以选择在钱包外本地持有，也可以自己搭建服务持有并公布节点。
+
+# DApp开发
+
+理解了DApp的架构设计就可以开始一步步的搭建我们的DApp了，这里我们不选择用各种成熟的框架。从最基础的开始，会更容易理解核心的思想。选择一个轻量级的钱包插件[MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)，安装并创建自己的账号。
+MetaMask默认会提供以下节点可以使用：
+
+* Main Ethereum Network
+* Ropsten Test Network
+* Kovan Test Network
+* Rinkeby Test Network
+* Localhost 8545
+
+当然你也可以手动添加自己的节点
+
+## 编写并编译智能合约
+
+以太坊提供一个图灵完备的开发环境，理论上可以构建任意复杂的智能合约，但是也要考虑到越复杂的逻辑越容易出错，并且会消耗更多的Gas，因此在设计上需要谨慎考虑。关于智能合约的编写这里不再赘述。这里有一个简单的合约：
+
+```
+pragma solidity ^0.4.21;
+/**
+Footmark
+ */
+contract Footmark {
+    struct Log {
+        uint time;
+        string text;
+    }
+    mapping (address=>mapping(address=>Log)) private logs;
+   
+    function Footmark() public {
+        
+    }
+    
+    // Leave a message to somebody
+    function leaveMessage(string text,address to) public returns(uint time) {
+        bytes memory textBytes = bytes(text);
+        require(textBytes.length > 0 && textBytes.length < 100);
+        time = now;
+        logs[msg.sender][to] = Log(time, text);
+        return time;
+    }
+    
+    // Leave a message to myself
+    function enter(string text) public returns(uint time) {
+        return leaveMessage(text, msg.sender);
+    }
+    
+    // Lookup message from somebody
+    function lookupFrom(address from) public view returns(uint time, string text) {
+        return (logs[from][msg.sender].time,logs[from][msg.sender].text);
+    }
+    
+    // Lookup message from myself to somebody
+    function lookupTo(address to) public view returns(uint time, string text) {
+        return (logs[msg.sender][to].time,logs[msg.sender][to].text);
+    }
+}
+```
+
+逻辑非常简单，任何人都可以在该合约中给其他人留言，所有人都可以查看留给自己的信息或者自己留给其他人的信息。
+接下来我们编译一下我们刚刚写的智能合约。各种框架都有提供合约编译的功能，比如Truffle。为了方便了解合约的编译过程，我们使用比较基础的Solidity的编译器[solc](https://github.com/ethereum/solc-js)来完成。
+如果通过
+
+```
+npm install -g solc
+```
+
+方式安装，会另外得到一个命令行工具solcjs，当然直接引用solc模块是可以用js脚本完成编译的
+
+```
+var solc = require('solc')
+var input = 'pragma solidity ^0.4.21;contract Footmark {struct Log {uint time;string text;}mapping (address=>mapping(address=>Log)) private logs;function Footmark() public {}function leaveMessage(string text,address to) public returns(uint time) {bytes memory textBytes = bytes(text);require(textBytes.length > 0 && textBytes.length < 100);time = now;logs[msg.sender][to] = Log(time, text);return time;}function enter(string text) public returns(uint time) {return leaveMessage(text, msg.sender);}function lookupFrom(address from) public view returns(uint time, string text) {return (logs[from][msg.sender].time,logs[from][msg.sender].text);}function lookupTo(address to) public view returns(uint time, string text) {return (logs[msg.sender][to].time,logs[msg.sender][to].text);}}'
+// Setting 1 as second paramateractivates the optimiser
+var output = solc.compile(input, 1)
+for (var contractName in output.contracts) {
+	// code and ABI that are needed by web3
+	console.log(contractName + ': ' + output.contracts[contractName].bytecode)
+	console.log(contractName + '; ' + JSON.parse(output.contracts[contractName].interface))
+}
+```
+
+方便期间我们使用命令行编译
+
+```
+solcjs Footmark.sol --abi --bin
+```
+
+会得到两个文件，后续我们会用到这两个文件的内容
+
+* Footmark_sol_Creation.bin ：编译后的binary code
+* Footmark_sol_Creation.abi ：编译后的abi
+
+还有一种更方便和直观的合约编译方式[http://remix.ethereum.org/](http://remix.ethereum.org/)
+![Footmark.jpg](https://upload-images.jianshu.io/upload_images/3018197-72402da804e66ea2.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![Footmark_detail.jpg](https://upload-images.jianshu.io/upload_images/3018197-9833252c03b0f814.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+编译的过程和结果都非常直观，更方便的一点是可以帮助开发者及时发现问题
+## 合约部署
+合约的部署需要借助Web3框架来完成，对于以太坊节点来说合约的部署会被视作一次交易，合约的内容会被存储在链上，因此部署过程需要借助钱包来完成交易签名，部署代码如下：
+
+```
+let abi = [{"constant":true,"inputs":[{"name":"to","type":"address"}],"name":"lookupTo","outputs":[{"name":"time","type":"uint256"},{"name":"text","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"text","type":"string"}],"name":"enter","outputs":[{"name":"time","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"text","type":"string"},{"name":"to","type":"address"}],"name":"leaveMessage","outputs":[{"name":"time","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"from","type":"address"}],"name":"lookupFrom","outputs":[{"name":"time","type":"uint256"},{"name":"text","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}];
+let binaryData = '0x6060604052341561000f57600080fd5b61082f8061001e6000396000f300606060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063762db2b4146100675780639d4ff8ad14610120578063b2c21c9114610191578063bcea56e014610221575b600080fd5b341561007257600080fd5b61009e600480803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506102da565b6040518083815260200180602001828103825283818151815260200191508051906020019080838360005b838110156100e45780820151818401526020810190506100c9565b50505050905090810190601f1680156101115780820380516001836020036101000a031916815260200191505b50935050505060405180910390f35b341561012b57600080fd5b61017b600480803590602001908201803590602001908080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505091905050610486565b6040518082815260200191505060405180910390f35b341561019c57600080fd5b61020b600480803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610499565b6040518082815260200191505060405180910390f35b341561022c57600080fd5b610258600480803573ffffffffffffffffffffffffffffffffffffffff1690602001909190505061058a565b6040518083815260200180602001828103825283818151815260200191508051906020019080838360005b8381101561029e578082015181840152602081019050610283565b50505050905090810190601f1680156102cb5780820380516001836020036101000a031916815260200191505b50935050505060405180910390f35b60006102e4610736565b6000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600001546000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101808054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156104765780601f1061044b57610100808354040283529160200191610476565b820191906000526020600020905b81548152906001019060200180831161045957829003601f168201915b5050505050905091509150915091565b60006104928233610499565b9050919050565b60006104a361074a565b839050600081511180156104b8575060648151105b15156104c357600080fd5b4291506040805190810160405280838152602001858152506000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008201518160000155602082015181600101908051906020019061057c92919061075e565b509050508191505092915050565b6000610594610736565b6000808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600001546000808573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101808054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156107265780601f106106fb57610100808354040283529160200191610726565b820191906000526020600020905b81548152906001019060200180831161070957829003601f168201915b5050505050905091509150915091565b602060405190810160405280600081525090565b602060405190810160405280600081525090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061079f57805160ff19168380011785556107cd565b828001600101855582156107cd579182015b828111156107cc5782518255916020019190600101906107b1565b5b5090506107da91906107de565b5090565b61080091905b808211156107fc5760008160009055506001016107e4565b5090565b905600a165627a7a72305820578c1cdd7be62a4f2138d05a15b241857bc9f554fe0f176a194620b04cd8344e0029';
+var creationContract = web3.eth.contract(abi);
+var creation = creationContract.new(
+   {
+     from: web3.eth.accounts[0], 
+     data: binaryData, 
+     gas: '4700000'
+   }, function (e, contract){
+    console.log(e, contract);
+    if (typeof contract.address !== 'undefined') {
+         console.log('Contract mined! address: ' + contract.address + ' transactionHash: ' + contract.transactionHash);
+    }
+ });
+```
+
+这里的abi和binaryData来自上一步的编译结果
+这里有以太坊测试网络Ropsten的部署结果：
+
+[0xc59565465f95Cd80E7317dd5a03929E6900090Ff](https://ropsten.etherscan.io/address/0xc59565465f95Cd80E7317dd5a03929E6900090Ff)
+
+## DApp开发
+
+完成合约的编译和部署之后就可以进行接下来的DApp的开发了。
+用之前提到过的MetaMask插件可以实现Chrome浏览器的轻量级钱包功能。MetaMask会在DApp运行环境中注入Web3框架，如果对MetaMask有强依赖的化我们只需要判断web3对象是否存在即可。
+
+```
+if (typeof web3 === "undefined") {
+    alert('未检测到Web3环境，请使用集成以太坊钱包的浏览器查看');
+    return;
+}
+```
+
+环境检测成功后就可以准备合约调用相关的依赖了，编译合约的时候生成的ABI描述文件可以直接构造为Javascript对象
+
+```
+let footmarkABI = [
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "text",
+				"type": "string"
+			}
+		],
+		"name": "enter",
+		"outputs": [
+			{
+				"name": "time",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "text",
+				"type": "string"
+			},
+			{
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "leaveMessage",
+		"outputs": [
+			{
+				"name": "time",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "text",
+				"type": "string"
+			}
+		],
+		"name": "LeaveMessage",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "from",
+				"type": "address"
+			}
+		],
+		"name": "lookupFrom",
+		"outputs": [
+			{
+				"name": "time",
+				"type": "uint256"
+			},
+			{
+				"name": "text",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "lookupTo",
+		"outputs": [
+			{
+				"name": "time",
+				"type": "uint256"
+			},
+			{
+				"name": "text",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+export default footmarkABI;
+```
+
+ABI是对合约接口的描述，调用线上合约的时候需要用到，当然生成的合约地址也是必要数据
+
+```
+data: function() {
+    return {
+        account: '',
+        messageTo: '',
+        messageContent: '',
+        lookupMessageTo: '',
+        lookupMessageFrom: '',
+        contractInstance: null,
+        contractAddress: '0xc59565465f95Cd80E7317dd5a03929E6900090Ff'
+    };
+}
+```
+
+```
+// 实例化合约
+if(!this.contractInstance) {
+    var contract = web3.eth.contract(footmarkABI);
+    this.contractInstance = contract.at(this.contractAddress);
+}
+```
+
+到这里合约就得到了一个实例化的合约对象，可以调用合约的方法，完成相应的功能。
+
+获取钱包当前账户
+```
+getAccount() {
+    web3.eth.getAccounts((error, accounts) => {
+        if (!error) {
+            this.account = accounts[0];
+        }
+    });
+}
+```
+
+给其他人留言
+
+```
+leaveMessageTo() {
+    this.contractInstance.leaveMessage(this.messageContent, this.messageTo, { from: self.account }, (error, result) => {
+        if (!error) {
+            var event = this.contractInstance.LeaveMessage((eerror, eresult) => {
+                event.stopWatching();
+                alert("留言成功！");
+            });
+        } else {
+            alert("留言失败！");
+        }
+    });
+    alert("交易签发，静等回复。。。");
+}
+```
+
+获取其他人给自己的留言
+
+```
+getMessageFrom() {
+    this.contractInstance.lookupFrom(this.lookupMessageFrom, { from: self.account }, (error, result) => {
+        let time = result[0].toNumber() * 1000;
+        let msg = result[1];
+        let date = new Date(time);
+        if (time > 0) {
+            alert(date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + '\n' + result[1]);
+        } else {
+            alert("未查询到留言！");
+        }
+    });
+}
+```
+
+获取自己给其他人的留言
+
+```
+getMessageTo() {
+    this.contractInstance.lookupTo(this.lookupMessageTo, { from: self.account }, (error, result) => {
+        let time = result[0].toNumber() * 1000;
+        let msg = result[1];
+        let date = new Date(time);
+        if (time > 0) {
+            alert(date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + '\n' + result[1]);
+        } else {
+            alert("未查询到留言！");
+        }
+    });
+}
+```
+
+功能完成DApp就可以发布了，当然这只是一个功能非常简单的DApp，这里只是把DApp的开发流程描述了一下，隐藏了一些比较繁琐的细节，比如交易签名(钱包帮我们完成，其实我们也可以自己来做，后续有时间再把这块内容详细介绍一下)、交易状态监听等等。
+
+## Done
+这里有DApp的合约信息(Ropsten网络)：[0xc59565465f95Cd80E7317dd5a03929E6900090Ff](https://ropsten.etherscan.io/address/0xc59565465f95Cd80E7317dd5a03929E6900090Ff)
+
+和DApp的发布版本：
+[http://dawntech.top/contract](http://dawntech.top/contract)
+
+
