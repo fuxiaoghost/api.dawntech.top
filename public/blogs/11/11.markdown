@@ -1,0 +1,538 @@
+为了能搞明白以太坊钱包的私钥、公钥和账户地址的概念得先补充点密码学的基本知识。
+
+## 非对称加密
+
+>对称加密算法在加密和解密时使用的是同一个秘钥；与对称加密算法不同，非对称加密算法需要两个密钥：公开密钥（publickey）和私有密钥（privatekey）。公开密钥与私有密钥是一对，如果用公开密钥对数据进行加密，只有用对应的私有密钥才能解密；如果用私有密钥对数据进行加密，那么只有用对应的公开密钥才能解密。因为加密和解密使用的是两个不同的密钥，所以这种算法叫作非对称加密算法。
+>
+>非对称加密与对称加密相比，其安全性更好：对称加密的通信双方使用相同的秘钥，如果一方的秘钥遭泄露，那么整个通信就会被破解。而非对称加密使用一对秘钥，一个用来加密，一个用来解密，而且公钥是公开的，秘钥是自己保存的，不需要像对称加密那样在通信之前要先同步秘钥。
+>
+>非对称加密的缺点是加密和解密花费时间长、速度慢，只适合对少量数据进行加密。
+>
+>在非对称加密中使用的主要算法有：[RSA](https://baike.baidu.com/item/RSA)、[Elgamal](https://baike.baidu.com/item/Elgamal)、背包算法、Rabin、D-H、[ECC](https://baike.baidu.com/item/ECC)（椭圆曲线加密算法）等。
+
+以太坊的私钥和公钥体系就是应用了非对称加密中的ECC算法体系中的DSA算法来实现的。非对称加密算法的安全性主要是依靠对算力的巨大消耗来保证安全的(大数分解的计算复杂度、离散对数问题的求解复杂度)，只是各类算法的实现机制各有不同。
+
+## RSA(Rivet、Shamir、Adelman)
+
+RSA是一个基于大数分解的高难度来实现的非对称加密算法，实现和原理相对容易理解一点，可以更容易帮助理解非对称加密。
+
+### RSA加密
+
+RSA的加密可以用公式表示为：
+密文=明文^E mod N
+明文和自己做E次乘方然后将其结果除以N求余数，这个余数就是密文
+E和N的组合就是公钥(E,N)
+
+### RSA解密
+
+RSA的解密可以用公式表示为：
+明文=密文^D mod N
+将密文和自己做D次乘法再对其结果除以N求余数就可以得到明文
+D和N的组合就是私钥(D,N)
+
+公钥：(E,N)
+私钥：(D,N)
+加密：密文=明文^E mod N
+解密：明文=密文^D mod N
+
+我们可以用下图简单表示：
+![RSA加解密.png](https://upload-images.jianshu.io/upload_images/3018197-fc47605b57445c45.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+如果我们把上面的过程翻转就可以实现数字签名，用私钥签名用公钥验签。
+* 签名：签名 = 数据^D mod N
+* 验签：签名^E mod N ==? 数据
+
+### 生成密钥对
+
+上面的过程中需要N、E、D三个参数来完成密钥的构建，接下来就来完成密钥的构建
+
+#### 1)求N
+
+首先准备两个很大的质数p、q，p和q通过伪随机数生成器生成，并且要满足p和q互质
+N=p x q
+
+#### 2)求L
+
+L这个数在RSA加密和解密过程中都不出现，但是需要借以来完成密钥对的生成。
+L是p-1和q-1的最小公倍数
+L=lcm(p-1,q-1)
+
+#### 3)求E
+
+E是一个比1大，比L小的数，且E和L互质：gcd(E,L)=1（最大公约数为1）
+1<E<L
+gcd(E,L)=1
+要找出满足条件的E还是要借助伪随机数生成器
+
+#### 4)求D
+
+D要满足以下条件
+1<D<L
+(E x D) mod L = 1
+
+下图为密钥构造过程：
+
+![RSA密钥构造.png](https://upload-images.jianshu.io/upload_images/3018197-79a65f111d31cd8f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+### RSA安全性
+
+E、N和D都是公开的，RSA的安全性就在于D的求解难度。
+我们知道E x D mod L = 1，L = lcm(p-1,q-1) 因此由E计算D需要使用p和q。但是p和q是非公开的，因此不可能通过生成密钥的相同的方法来求解D。只能通过N=p x q来尝试，需要对N进行质因数分解，这就要涉及到对大整数进行质因数分解的算法问题。目前在保证q和p足够大的情况下尚没有非常有效的算法来完成对N的质因数分解。因此我们可以理解RSA算法的破解需要非常大的算力，这也就是RSA安全的保障。
+
+### RSA证明
+
+RSA的证明部分上学那会儿学完之后就交给老师了，就不在这里丢人了。涉及到比较多的数论的东西，这里有一些资料讲的比较清晰：
+
+* http://www.cnblogs.com/hykun/p/RSA.html
+* http://blog.jobbole.com/96702/
+
+## ECC
+
+> 随着分解大整数方法的进步及完善、计算机速度的提高以及计算机网络的发展，为了保障数据的安全，RSA 的密钥需要不断增加，但是，密钥长度的增加导致了其加解密的速度大为降低，因此需要一种新的算法来代替 RSA。 椭圆曲线：Elliptic curve cryptography，缩写为 ECC，根据是有限域上的椭圆曲线上的点群中的离散对数问题ECDLP。ECDLP是比质因数分解问题更难的问题，它是指数级的难度。
+> 
+> ECC 和 RSA 相比，在许多方面都有对绝对的优势，主要体现在以下方面：
+> 
+> * 抗攻击性强
+> * CPU 占用少
+> * 内容使用少
+> * 网络消耗低
+> * 加密速度快
+> 
+> 随着安全等级的增加，当前加密法的密钥长度也会成指数增加，而 ECC 密钥长度 却只是成线性增加。例如，128 位安全加密需要 3,072 位 RSA 密钥，却只需要一 个 256 位 ECC 密钥。增加到 256 位安全加密需要一个 15,360 位 RSA 密钥，却只需要一个 512 位 ECC 密钥。
+
+ECC 的诸多优势也让他成为了各类区块链项目的首选
+关于椭圆曲线的原理可以参考
+
+* [A (relatively easy to understand) primer on elliptic curve cryptography](https://arstechnica.com/information-technology/2013/10/a-relatively-easy-to-understand-primer-on-elliptic-curve-cryptography/?comments=1) 
+* [Wikipedia: Elliptic curve](https://en.wikipedia.org/wiki/Elliptic_curve) 
+* [Wikipedia: Elliptic curve cryptography](https://en.wikipedia.org/wiki/Elliptic_curve_cryptography) 
+
+## 以太坊私钥、公钥、地址
+
+以太坊的秘钥体系是基于椭圆曲线的ECDSA，接下来我们主要看一下他的钱包功能：私钥、公钥和地址的生成，交易信息的签名（通过node实现）
+
+在构造私钥、公钥和地址之前我们需要引入几个node的库
+
+```
+// 随机数生成器
+import { randomBytes } from 'crypto';
+// 椭圆曲线库
+import secp256k1 from 'secp256k1';
+// keccak哈希函数库
+import createKeccakHash from 'keccak';
+```
+
+### 私钥
+
+```
+/**
+ * 私钥：secp256k1(ECDSA)生成私钥(256 bits 随机数/32位)
+ */
+function generatePrivateKey() {
+    var privateKey = null;
+    do {
+        privateKey =  randomBytes(32)
+
+    }while(!secp256k1.privateKeyVerify(privateKey));
+    return privateKey;
+}
+```
+该函数会返回Buffer类型的数据，把他转为字符串就可以得到一个私钥串：
+
+```
+let privateKey = generatePrivateKey();
+console.log("私钥" + ':' + privateKey.hexSlice());
+
+私钥:833e376d0894438c72a02e0e026f601894992f43bbabdccdfd92bea15ef718bb
+```
+
+### 公钥
+
+```
+/**
+ * secp256k1(ECDSA)通过私钥生成公钥
+ * @param {string} privateKey 私钥
+ * @param {boolean} compressed 是否为压缩格式
+ */
+function generatePublicKey(privateKey, compressed = false) {
+    let publicKey = secp256k1.publicKeyCreate(privateKey, compressed);
+    return publicKey;
+}
+```
+
+```
+
+/**
+ * 导入16进制编码的私钥 
+ * @param {string} hexString 16进制编码的私钥
+ */
+function loadPrivateKeyFromHexString(hexString) {
+    if (hexString.slice(0, 2) == '0x') {
+        hexString = hexString.slice(2);
+    }
+    if (hexString.length != 64) {
+        return null;
+    }
+    return new Buffer(hexString, 'hex')
+}
+
+let privateKey = loadPrivateKeyFromHexString("833e376d0894438c72a02e0e026f601894992f43bbabdccdfd92bea15ef718bb");
+let publicKey = generatePublicKey(privateKey);
+console.log("公钥" + ":" + publicKey.hexSlice());
+
+公钥:041f0716adebd0d75accc5e9308f00e30520f5c633e4003da62acd8baad105e389d2144833cca0f2d0ad4a3470a3b4c8c6c1dba6530f5890b5391d353968796a56
+```
+
+### 地址
+
+把公钥去掉04，剩下的进行keccak-256的哈希，得到长度64的16进制字串，丢掉前面24个，拿后40个，再加上"0x"，即为以太坊地址。
+
+```
+/**
+ * 地址：公钥的keccak256编码的后20字节，16进制编码的字符串
+ * @param {string} publicKey 公钥
+ */
+function generateAddress(publicKey) {
+    return createKeccakHash('keccak256').update(publicKey.slice(1)).digest('hex').slice(-40);
+}
+```
+
+```
+let privateKey = loadPrivateKeyFromHexString("833e376d0894438c72a02e0e026f601894992f43bbabdccdfd92bea15ef718bb");
+let publicKey = generatePublicKey(privateKey);
+console.log("地址" + ":" + generateAddress(publicKey));
+
+6147db4391199cfc881c9a3af9fd7a52e4929320
+```
+
+私钥生成公钥，公钥推出地址：私钥->公钥->地址，这个过程不可逆
+
+## 以太坊交易签名
+
+### ECDSA算法的数据签名和验签
+
+在研究以太坊的交易签名之前，我们先看一下单纯的ECDSA算法对数据的签名和验签过程
+
+依然需要依赖几个node的库
+```
+// secp256k1椭圆曲线库
+import secp256k1 from 'secp256k1';
+// keccak哈希函数库
+import createKeccakHash from 'keccak';
+// 一些常用的方法：isHexString、intToBuffer、stripHexPrefix等
+import util from 'ethjs-util';
+// BigNumber
+import BN from 'bn.js';
+```
+
+常用数据类型转Buffer
+
+```
+/**
+ * 各种类型数据转buffer
+ * @param {*} v 数据
+ */
+function bufferFrom(v) {
+    if (!Buffer.isBuffer(v)) {
+        if (Array.isArray(v)) {
+            v = Buffer.from(v)
+        } else if (typeof v === 'string') {
+            if (util.isHexString(v)) {
+                v = Buffer.from(util.padToEven(util.stripHexPrefix(v)), 'hex')
+            } else {
+                v = Buffer.from(v)
+            }
+        } else if (typeof v === 'number') {
+            v = util.intToBuffer(v)
+        } else if (v === null || v === undefined) {
+            v = Buffer.allocUnsafe(0)
+        } else if (BN.isBN(v)) {
+            v = v.toArrayLike(Buffer)
+        } else if (v.toArray) {
+            // converts a BN to a Buffer
+            v = Buffer.from(v.toArray())
+        } else {
+            throw new Error('invalid type')
+        }
+    }
+    return v
+}
+```
+
+#### ECDSA签名
+
+```
+/**
+ * secp256k1数据签名
+ * @param {*} msg 需要签名的数据
+ * @param {Buffer} privateKeyBuffer 私钥Buffer
+ */
+function sign(msg, privateKeyBuffer) {
+    if (!secp256k1.privateKeyVerify(privateKey)) {
+        console.log("Invalid private key！");
+        return null;
+    }
+    // 生成需要签名数据的keccak256哈希
+    let hash = createKeccakHash('keccak256').update(msg).digest();
+    let sig = secp256k1.sign(hash, privateKeyBuffer);
+    let ret = {};
+    // 分离签名得到r,s,v
+    ret.r = sig.signature.slice(0, 32);
+    ret.s = sig.signature.slice(32, 64);
+    ret.v = sig.recovery;
+    return ret;
+}
+
+/**
+ * 拼接签名
+ * @param {Object} ret 
+ */
+function signBuffer(ret) {
+    return Buffer.concat([
+        bufferFrom(ret.r),
+        bufferFrom(ret.s),
+        bufferFrom(ret.v)
+    ]);
+}
+
+let privateKey = loadPrivateKeyFromHexString("833e376d0894438c72a02e0e026f601894992f43bbabdccdfd92bea15ef718bb");
+let msg = "Hello World";
+let signRet = sign(msg, privateKey);
+console.log("签名" + ":" + signBuffer(signRet).hexSlice());
+签名:6fdb3862a3da7da6aa9e70b5709cc60ef458a51e64ae15f4d19aeb121cd5c3661ddf0a3192b9723c2c52be79db1820da782577fcceb3e7767b9b0ac61c09f96501
+```
+
+#### ECDSA验签
+
+```
+
+/**
+ * 通过签名和原始数据恢复公钥
+ * @param {*} r signature[0-32)
+ * @param {*} s signature(32,64]
+ * @param {*} v recovery(0 or 1)
+ * @param {*} msg 原始数据
+ */
+function recovery(r, s, v, msg) {
+    let signature = Buffer.concat([bufferFrom(r), bufferFrom(s)], 64)
+    let recovery = v;
+    if (recovery !== 0 && recovery !== 1) {
+        throw new Error('Invalid signature v value')
+    }
+    let hash = createKeccakHash('keccak256').update(msg).digest();
+    let senderPubKey = secp256k1.recover(hash, signature, recovery);
+    return secp256k1.publicKeyConvert(senderPubKey, false);
+}
+
+/**
+ * 
+ * @param {*} msg 原始数据
+ * @param {*} r signature[0-32)
+ * @param {*} s signature(32,64]
+ * @param {*} pubKeyBuffer 公钥
+ */
+function verify(msg, r, s, pubKeyBuffer) {
+    let signature = Buffer.concat([bufferFrom(r), bufferFrom(s)], 64)
+    let hash = createKeccakHash('keccak256').update(msg).digest();
+    return secp256k1.verify(hash, signature, pubKeyBuffer);
+}
+
+let privateKey = loadPrivateKeyFromHexString("833e376d0894438c72a02e0e026f601894992f43bbabdccdfd92bea15ef718bb");
+let msg = "Hello World";
+let signRet = sign(msg, privateKey);
+console.log("提取公钥" + ":" + recovery(signRet.r, signRet.s, signRet.v, msg).hexSlice());
+console.log("验签" + ":" + verify(msg, signRet.r, signRet.s, publicKey));
+
+提取公钥:041f0716adebd0d75accc5e9308f00e30520f5c633e4003da62acd8baad105e389d2144833cca0f2d0ad4a3470a3b4c8c6c1dba6530f5890b5391d353968796a56
+验签:true
+```
+
+以上就是通过ECDSA算法实现的对数据的签名和验证签名的过程。这也是以太坊钱包签署交易的核心部分，只不过以太坊在交易数据结构上有特殊的定义，在ECDSA签名之前会有一些数据格式上的处理。
+
+### 交易签名
+以太坊上链上的交易可以分为三种类型：
+
+* 转账交易
+* 创建合约
+* 调用合约
+
+在分析各种类型的交易之前，我们先看一下原始交易对象
+
+```
+{
+    nonce: '0x00',
+    gasPrice: '0x01',
+    gasLimit: '0x01',
+    to: '0x633296baebc20f33ac2e1c1b105d7cd1f6a0718b',
+    value: '0x00',
+    data: '0xc7ed014952616d6100000000000000000000000000000000000000000000000000000000',
+    // EIP 155 chainId - mainnet: 1, ropsten: 3
+    chainId: 3
+}
+```
+
+如上为以太坊上的交易数据结构
+* **nonce**：记录账户已执行的交易总数，nonce 的值随着每个新交易的执行不断增加
+* **gasPrice**：你愿为该交易支付的每单位 gas 的价格，gas 价格目前以 GWei 为单位，其范围是0.1->100+Gwei
+* **gasLimit**：你愿为该交易支付的最高 gas 总额。该上限能确保在出现交易执行问题（比如陷入无限循环）之时，你的账户不会耗尽所有资金。一旦交易执行完毕，剩余所有 gas 会返还至你的账户
+* **to**：目标地址，如果是转账交易就是收款地址，如果是合约调用就是合约地址
+* **value**：即你打算发送的以太币总量。如果你要执行一个转账交易，向另一个人或合约发送以太币，你会需要设置 value 值。
+* **data**：不同的交易类型下该字段会有所不同，在接下来的介绍中会有该字段的详细说明
+* **chainId**：该字段用来标明交易数据要发送到哪个网络，1为主网，3位ropsten网络
+
+#### 转账交易
+
+```
+{
+    nonce: '0x28',
+    gasPrice: '0x3b9aca00',
+    gasLimit: '0x12cac',
+    to: '0x71c541231f5bb1ccf924ab1ae2259a82318c9df4',
+    value: '0xde0b6b3a7640000',
+    data: ''
+}
+```
+
+转账交易的`value`为转账金额(16进制)，`data`为空，其他字段维持原意
+
+#### 创建合约
+
+```
+{
+    nonce: '0x18',
+    gasPrice: '0x3b9aca00',
+    gasLimit: '0xa23d4',
+    to: '',
+    value: '0x00',
+    data: '0x6060604052341561000f57600080fd5b6108f98061001e6000396000f300606060405260043610610062576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063762db2b4146100675780639d4ff8ad14610120578063b2c21c9114610191578063bcea56e014610221575b600080fd5b341561007257600080fd5b61009e600480803573ffffffffffffffffffffffffffffffffffffffff169060200190919050506102da565b6040518083815260200180602001828103825283818151815260200191508051906020019080838360005b838110156100e45780820151818401526020810190506100c9565b50505050905090810190601f1680156101115780820380516001836020036101000a031916815260200191505b50935050505060405180910390f35b341561012b57600080fd5b61017b600480803590602001908201803590602001908080601f01602080910402602001604051908101604052809392919081815260200183838082843782019150505050505091905050610486565b6040518082815260200191505060405180910390f35b341561019c57600080fd5b61020b600480803590602001908201803590602001908080601f0160208091040260200160405190810160405280939291908181526020018383808284378201915050505050509190803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610499565b6040518082815260200191505060405180910390f35b341561022c57600080fd5b610258600480803573ffffffffffffffffffffffffffffffffffffffff16906020019091905050610654565b6040518083815260200180602001828103825283818151815260200191508051906020019080838360005b8381101561029e578082015181840152602081019050610283565b50505050905090810190601f1680156102cb5780820380516001836020036101000a031916815260200191505b50935050505060405180910390f35b60006102e4610800565b6000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600001546000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101808054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156104765780601f1061044b57610100808354040283529160200191610476565b820191906000526020600020905b81548152906001019060200180831161045957829003601f168201915b5050505050905091509150915091565b60006104928233610499565b9050919050565b60006104a3610814565b839050600081511180156104b8575060648151105b15156104c357600080fd5b4291506040805190810160405280838152602001858152506000803373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008201518160000155602082015181600101908051906020019061057c929190610828565b509050508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167f3a2267d580cf7cd5f1c6b0aaefb67f309eb1469554ef9b8355bbf413dcc97317866040518080602001828103825283818151815260200191508051906020019080838360005b838110156106105780820151818401526020810190506105f5565b50505050905090810190601f16801561063d5780820380516001836020036101000a031916815260200191505b509250505060405180910390a38191505092915050565b600061065e610800565b6000808473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600001546000808573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600101808054600181600116156101000203166002900480601f0160208091040260200160405190810160405280929190818152602001828054600181600116156101000203166002900480156107f05780601f106107c5576101008083540402835291602001916107f0565b820191906000526020600020905b8154815290600101906020018083116107d357829003601f168201915b5050505050905091509150915091565b602060405190810160405280600081525090565b602060405190810160405280600081525090565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061086957805160ff1916838001178555610897565b82800160010185558215610897579182015b8281111561089657825182559160200191906001019061087b565b5b5090506108a491906108a8565b5090565b6108ca91905b808211156108c65760008160009055506001016108ae565b5090565b905600a165627a7a72305820125d82944ab5d02eb4d5d6182e6eb60dd47a0e64494bec20f9300b3fdb33f6a20029'
+}
+```
+
+创建合约的交易`to`为空，`value`为0，`data`为合约编译后的BineryCode(合约编译可以参考[以太坊DApp开发指南](https://www.jianshu.com/p/72c4a0443d4e))
+
+#### 调用合约
+
+```
+0x48be4583a90f253bcc92cec60b244d7de57aa1f425e181545ac036d0d20c47a1
+{
+    nonce: '0x19',
+    gasPrice: '0x3b9aca00',
+    gasLimit: '0x18c63',
+    to: '0xc59565465f95cd80e7317dd5a03929e6900090ff',
+    value: '0x00',
+    data: '0xb2c21c9100000000000000000000000000000000000000000000000000000000000000400000000000000000000000005902598fc6c9c85bec8452f9ba3fca2f8b226a1b000000000000000000000000000000000000000000000000000000000000000548656c6c6f000000000000000000000000000000000000000000000000000000'
+}
+```
+
+调用合约的交易`to`为合约地址，`value`为0，`data`的构造要复杂一点，详细构造过程可参阅：[Ethereum Contract ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI)
+简单点将就是把要调用的函数名签名拼接上函数调用参数的编码共同构成data数据。
+我们以这个交易的签名为例看一下：
+该交易调用的合约为[Footmark](https://ropsten.etherscan.io/address/0xc59565465f95cd80e7317dd5a03929e6900090ff#code)，目标方法为：
+
+```
+// Leave a message to somebody
+function leaveMessage(string text,address to) public returns(uint time) {
+    bytes memory textBytes = bytes(text);
+    require(textBytes.length > 0 && textBytes.length < 100);
+    time = now;
+    logs[msg.sender][to] = Log(time, text);
+    emit LeaveMessage(msg.sender, to, text);
+    return time;
+}
+```
+
+按照[Ethereum Contract ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI)的规则，首先得到函数的签名，计算方式是使用函数签名的keccak256的哈希，取4个字节，转换为hex之后就是前8个字符：
+```
+let method = createKeccakHash('keccak256').update('leaveMessage(string,address)').digest('hex').slice(0,8);
+console.log(method);
+
+b2c21c91
+
+console.log(bufferFrom('Hello').hexSlice());
+48656c6c6f
+```
+
+接下来是对参数的编码：
+第一位参数是string，内容为：Hello
+第二位参数为address，内容为：0x5902598Fc6c9C85BeC8452f9BA3fca2F8b226a1b
+
+按照按照[Ethereum Contract ABI](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI)的规则，第一个参数为动态类型，相对于所有参数要放在最后，偏移量为：2 * 32 (两个参数，每个参数32字节)
+转为hex并补充到32字节：
+
+`0000000000000000000000000000000000000000000000000000000000000040`
+
+第二个参数为固定位数，直接编码并补全到32位：
+
+`0000000000000000000000005902598fc6c9c85bec8452f9ba3fca2f8b226a1b`
+
+之后是拼接第一个参数的数据，由于是string类型，要先计算字符长度并补全到32位：
+
+`0000000000000000000000000000000000000000000000000000000000000005`
+
+在对'Hello'字符串进行编码：
+
+`48656c6c6f000000000000000000000000000000000000000000000000000000`
+
+最后把所有的数据拼接：
+
+```
+0xb2c21c91
+0000000000000000000000000000000000000000000000000000000000000040
+0000000000000000000000005902598fc6c9c85bec8452f9ba3fca2f8b226a1b
+0000000000000000000000000000000000000000000000000000000000000005
+48656c6c6f000000000000000000000000000000000000000000000000000000
+```
+
+这就是交易中需要发送的数据
+
+有了交易的数据就可以利用之前生成的私钥对交易进行签名了，因为还要涉及到交易数据格式的转换，这里就直接利用[ethereumjs-tx](https://github.com/ethereumjs/ethereumjs-tx)完成对交易的签名了。
+
+```
+import EthereumTx from 'ethereumjs-tx';
+
+/**
+ * 交易签名并序列化
+ * @param {Buffer} privateKeyBuffer 私钥
+ * @param {Object} txParams 交易结构体
+ */
+function signTx(privateKeyBuffer, txParams) {
+      const tx = new EthereumTx(txParams);
+      tx.sign(privateKey);
+      const serializedTx = tx.serialize();
+      return serializedTx;
+}
+
+let txParams = {
+    nonce: '0x19',
+    gasPrice: '0x3b9aca00',
+    gasLimit: '0x18c63',
+    to: '0xc59565465f95cd80e7317dd5a03929e6900090ff',
+    value: '0x00',
+    data: '0xb2c21c9100000000000000000000000000000000000000000000000000000000000000400000000000000000000000005902598fc6c9c85bec8452f9ba3fca2f8b226a1b000000000000000000000000000000000000000000000000000000000000000548656c6c6f000000000000000000000000000000000000000000000000000000',
+    chainId: 3
+}
+
+let serializedTx = signTx(privateKey, txParams).hexSlice();
+
+console.log("交易" + ":" + serializedTx);
+
+交易数据:f8e919843b9aca0083018c6394c59565465f95cd80e7317dd5a03929e6900090ff80b884b2c21c9100000000000000000000000000000000000000000000000000000000000000400000000000000000000000005902598fc6c9c85bec8452f9ba3fca2f8b226a1b000000000000000000000000000000000000000000000000000000000000000548656c6c6f0000000000000000000000000000000000000000000000000000002aa082accda7fe28468bda030cd5ae8dad359b7963a9d2ab63c897d1f17196171ff5a053544c8a49e921e7f35c1c35d9340215566f0b9dd1e0504f768b8c993bc96bcf
+```
+
+至此一个完整的以太坊交易构造和签名的过程就完成了。
+
+---
+
+相关代码可以参阅：
+[https://github.com/fuxiaoghost/ethereum/blob/master/key/key.js](https://github.com/fuxiaoghost/ethereum/blob/master/key/key.js)
+
+Demo:
+[http://dawntech.top/key](http://dawntech.top/key)
+
+
+
+
+
+
+
+
