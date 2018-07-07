@@ -8,6 +8,13 @@
             "date": "2018-05-11"
         },
         {
+            "id": "b0012",
+            "title": "IPFS文件地址链上存储",
+            "desc": "IPFS文件地址链上存储方案探索",
+            "target": "/api/static/blogs/12/12.markdown",
+            "date": "2018-07-07"
+        },
+        {
             "id": "b0010",
             "title": "以太坊DApp开发指南",
             "desc": "以太坊DApp开发指南，从最简单的做起",

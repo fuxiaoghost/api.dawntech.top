@@ -1,0 +1,304 @@
+# IPFS 是什么
+
+> [IPFS](https://ipfs.io/)（InterPlanetary File System，星际文件系统）是永久的、去中心化保存和共享文件的方法，这是一种内容可寻址、版本化、点对点超媒体的分布式协议。
+>  内容可寻址：通过文件内容生成唯一哈希值来标识文件，而不是通过文件保存位置来标识。相同内容的文件在系统中只会存在一份，节约存储空间
+>  版本化：可追溯文件修改历史
+> 点对点超媒体：P2P 保存各种各样类型的数据
+> 可以把 IPFS 想象成所有文件数据是在同一个 BitTorrent 群并且通过同一个 Git 仓库存取。
+>总之，它集一些成功系统（分布式哈希表、BitTorrent、Git、自认证文件系统）的优势于一身，是一套很厉害的文件存取系统。
+
+# 区块链和IPFS的结合
+
+大家都知道区块链的数据是可以永久保存的，但是如果在区块链上存储大量的数据是非常昂贵的。如果结合IPFS，我们可以在IPFS以文件的形式存储数据并把文件的地址保存在区块链上，这样就可以做到大量数据的永久存储并可以有效追踪。当然再结合区块链上的智能合约就可以发挥更大的想象力了。
+
+# IPFS地址分析
+
+为了在链上存储IPFS的文件地址，我们对IPFS的文件地址做一下简单的分析。由于IPFS的数据块大小为256字节，因此如果文件大小超过此大小会被拆分为多个数据块。多个数据块要涉及到Merkle DAG(Directed Acyclic Graph) 默克有向无环图，相对复杂一点，后续的文章再做分析。这里我们简单分析一下单数据区块的情况。
+从[IPFS的源码](https://github.com/ipfs/js-ipfs)分离出部分代码，可以生成文件的IPFS地址
+
+```
+function ipfsHash(filePath) {
+    var buffer = fs.readFileSync(filePath);
+    const unixFs = new Unixfs('file', buffer);
+    DAGNode.create(unixFs.marshal(), (err, dagNode) => {
+        let json = dagNode.toJSON();
+        console.log("File:0x" + buffer.toString('hex'));
+        console.log("UnixFs:0x" + unixFs.marshal().toString('hex'));
+        console.log("Header+UnixFS:0x" + dagNode.serialized.toString('hex'));
+        console.log("Multihash:0x" + dagNode.multihash.toString('hex'));
+        console.log("Address:" + json.multihash);
+        console.log("---------------------------------------------------------------------");
+    });
+}
+ipfsHash('/Users/Kirn/Documents/Workspace/Dawn/ethereum/assets/test.txt');
+
+File:0x310a320a330a340a350a360a370a0a
+UnixFs:0x0802120f310a320a330a340a350a360a370a0a180f
+Header+UnixFS:0x0a150802120f310a320a330a340a350a360a370a0a180f
+Multihash:0x1220a1001394f749d9a0c5f27761b2f08e9432ce215dad6f01dbe26e468857169cbb
+Address:QmZB8R7T5xvKJDUJ6pXtUym6frQx1r6bQPcwquR1rtGHL6
+```
+
+为了能更清楚的了解IPFS的地址构成我们把整个构造过程拆解一下
+
+```
+function customHash(filePath) {
+    // 读取文件Buffer
+    var buffer = fs.readFileSync(filePath);
+
+    // 转为Unix File System
+    const unixFs = new Unixfs('file', buffer).marshal();
+
+    // 添加tag
+    let tag = Buffer.from([10])
+    
+    // 添加File Size
+    let size = Buffer.from([unixFs.length]);
+    var newBuffer = Buffer.concat([tag, size, unixFs]);
+
+    // sha2-256
+    let sha256 = crypto.createHash('sha256').update(newBuffer).digest();
+
+    // multihash
+    let multihash = multihashes.encode(sha256, 'sha2-256');
+
+    // base58
+    let base58 = bs58.encode(multihash).toString('hex');
+    console.log("File:0x" + buffer.toString('hex'));
+    console.log("UnixFs:0x" + unixFs.toString('hex'));
+    console.log("Header+UnixFS:0x" + newBuffer.toString('hex'));
+    console.log("Sha256:0x" + sha256.toString('hex'));
+    console.log("Multihash:0x" + multihash.toString('hex'));
+    console.log("Address:" + base58);
+    console.log("---------------------------------------------------------------------");
+}
+customHash('/Users/Kirn/Documents/Workspace/Dawn/ethereum/assets/test.txt');
+
+File:0x310a320a330a340a350a360a370a0a
+UnixFs:0x0802120f310a320a330a340a350a360a370a0a180f
+Header+UnixFS:0x0a150802120f310a320a330a340a350a360a370a0a180f
+Sha256:0xa1001394f749d9a0c5f27761b2f08e9432ce215dad6f01dbe26e468857169cbb
+Multihash:0x1220a1001394f749d9a0c5f27761b2f08e9432ce215dad6f01dbe26e468857169cbb
+Address:QmZB8R7T5xvKJDUJ6pXtUym6frQx1r6bQPcwquR1rtGHL6
+```
+
+大致可以分解为以下步骤
+* 读取文件数据为Buffer
+* 把文件数据转为Unix文件格式
+* 数据流头部增加Metadata数据
+  - tag: 0x0a=10（此处也不知为何，后续再做研究）
+  - 文件大小
+* sha2-256编码
+* 转为multihash格式，目前IPFS采用的是32位sha2-256编码，因此数据头部需要增加0x1220，0x12代表sha256，0x20=32代表hash位数
+* Base58编码
+
+# IPFS链上存储方案
+
+针对于上面对IPFS地址的分析，我们可以在链上采取两种存取方案
+
+* 存储方案一
+以string的形式直接存储IPFS地址，优点：简单明了，读取和存储都很方便，缺点：占用空间大，gas消耗可能会比较大
+* 存储方案二
+以bytes32的形式只存储IPFS地址的sha256之后的结果，优点：占用空间少，gas消耗较少，缺点：读取和存储相对比较麻烦
+
+写一个简单的合约测试一下
+
+```
+pragma solidity ^0.4.21;
+
+contract IPFSAddress {
+    mapping(address => bytes32) public bytesIpfs;
+    mapping (address=>string) public stringIpfs;
+    
+    // save as bytes32
+    function saveBytes(bytes32 ipfs) public {
+        bytesIpfs[msg.sender] = ipfs;
+    }
+    
+    // save as string 
+    function saveString(string ipfs) public {
+        stringIpfs[msg.sender] = ipfs;
+    }
+}
+```
+
+#### string存储交易回执
+
+```
+QmZB8R7T5xvKJDUJ6pXtUym6frQx1r6bQPcwquR1rtGHL6
+{
+  blockHash: "0x1385ab689055d504d98b675da4803708be856368e8dd2799a917b1153d5712e2",
+  blockNumber: 185768,
+  contractAddress: null,
+  cumulativeGasUsed: 85962,
+  from: "0x262bab6a90aa1741390c4a3ec58855c81d9728e1",
+  gasUsed: 85962,
+  logs: [],
+  logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  root: "0xc37b7485014a3fc7ff943c4f753b77e649526633d490ca815ff2abd385699c88",
+  to: "0xb6093ecf6a2ae6b94bb2e45186da0f2bcfa315a5",
+  transactionHash: "0xfe6162aceeb211ace9b2c689135778ec28c1c5d778785f20a0a246220b18cfa4",
+  transactionIndex: 0
+}
+```
+
+#### bytes32存储交易回执
+
+```
+0xa1001394f749d9a0c5f27761b2f08e9432ce215dad6f01dbe26e468857169cbb
+{
+  blockHash: "0xf7f47ef6d77773b54fe143c933d67c49ee0694851bb7fa7cafb2b594d14c1d0e",
+  blockNumber: 185766,
+  contractAddress: null,
+  cumulativeGasUsed: 43595,
+  from: "0x262bab6a90aa1741390c4a3ec58855c81d9728e1",
+  gasUsed: 43595,
+  logs: [],
+  logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  root: "0x476961f34dbbfc86c47a2f4935a5840b23fee03578994c56625ca83af75acf7f",
+  to: "0xb6093ecf6a2ae6b94bb2e45186da0f2bcfa315a5",
+  transactionHash: "0x0a8b740c94deae4df8df76852d03f74461843235e0c05b78f31c8f06ee2f81a3",
+  transactionIndex: 0
+}
+```
+
+对比两次链上交易的结果：
+* string存储消耗：gasUsed: 85962
+* bytes32存储消耗：gasUsed: 43595
+
+bytes32存储差不多是string存储gas消耗的一半，算是一个较优的存储方案，当然前提是multihash采用的hash算法不变的情况下。因为IPFS的地址采用了multihash，在sha256算法不安全的情况下可以随时更换其他hash算法而不需要更改设计方案。
+
+# 解析链上IPFS地址
+
+为了方便查询链上的IPFS地址，可以把base58编码的算法在合约里实现一下，这里用library实现。
+
+```
+library IPFSLib {
+    bytes constant ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    /**
+     * @dev Base58 encoding
+     * @param _source Bytes data
+     * @return Encoded bytes data
+     */
+    function base58Address(bytes _source) internal pure returns (bytes) {
+        uint8[] memory digits = new uint8[](_source.length * 136/100 + 1);
+        digits[0] = 0;
+        uint8 digitlength = 1;
+        for (uint i = 0; i < _source.length; ++i) {
+            uint carry = uint8(_source[i]);
+            for (uint j = 0; j<digitlength; ++j) {
+                carry += uint(digits[j]) * 256;
+                digits[j] = uint8(carry % 58);
+                carry = carry / 58;
+            }
+            
+            while (carry > 0) {
+                digits[digitlength] = uint8(carry % 58);
+                digitlength++;
+                carry = carry / 58;
+            }
+        }
+        return toAlphabet(reverse(truncate(digits, digitlength)));
+    }
+
+    /**
+     * @dev Truncate `_array` by `_length`
+     * @param _array The source array
+     * @param _length The target length of the `_array`
+     * @return The truncated array 
+     */
+    function truncate(uint8[] _array, uint8 _length) internal pure returns (uint8[]) {
+        uint8[] memory output = new uint8[](_length);
+        for (uint i = 0; i < _length; i++) {
+            output[i] = _array[i];
+        }
+        return output;
+    }
+    
+    /**
+     * @dev Reverse `_input` array 
+     * @param _input The source array 
+     * @return The reversed array 
+     */
+    function reverse(uint8[] _input) internal pure returns (uint8[]) {
+        uint8[] memory output = new uint8[](_input.length);
+        for (uint i = 0; i < _input.length; i++) {
+            output[i] = _input[_input.length - 1 - i];
+        }
+        return output;
+    }
+
+    /**
+     * @dev Convert the indices to alphabet
+     * @param _indices The indices of alphabet
+     * @return The alphabets
+     */
+    function toAlphabet(uint8[] _indices) internal pure returns (bytes) {
+        bytes memory output = new bytes(_indices.length);
+        for (uint i = 0; i < _indices.length; i++) {
+            output[i] = ALPHABET[_indices[i]];
+        }
+        return output;
+    }
+
+    /**
+     * @dev Convert bytes32 to bytes
+     * @param _input The source bytes32
+     * @return The bytes
+     */
+    function toBytes(bytes32 _input) internal pure returns (bytes) {
+        bytes memory output = new bytes(32);
+        for (uint8 i = 0; i < 32; i++) {
+            output[i] = _input[i];
+        }
+        return output;
+    }
+
+    /**
+     * @dev Concat two bytes to one
+     * @param _byteArray The first bytes
+     * @param _byteArray2 The second bytes
+     * @return The concated bytes
+     */
+    function concat(bytes _byteArray, bytes _byteArray2) internal pure returns (bytes) {
+        bytes memory returnArray = new bytes(_byteArray.length + _byteArray2.length);
+        for (uint16 i = 0; i < _byteArray.length; i++) {
+            returnArray[i] = _byteArray[i];
+        }
+        for (i; i < (_byteArray.length + _byteArray2.length); i++) {
+            returnArray[i] = _byteArray2[i - _byteArray.length];
+        }
+        return returnArray;
+    }
+}
+```
+
+```
+contract IPFSAddress {
+    using IPFSLib for bytes;
+    using IPFSLib for bytes32;
+    mapping(address => bytes32) public bytesIpfs;
+    mapping (address=>string) public stringIpfs;
+    
+    function saveBytes(bytes32 ipfs) public {
+        bytesIpfs[msg.sender] = ipfs;
+    }
+    
+    function saveString(string ipfs) public {
+        stringIpfs[msg.sender] = ipfs;
+    }
+    
+    function ipfsAddress() external view returns (string) { 
+        bytes memory prefix = new bytes(2);
+        prefix[0] = 0x12;
+        prefix[1] = 0x20;
+        bytes memory value = prefix.concat(bytesIpfs[msg.sender].toBytes());
+        bytes memory ipfsBytes = value.base58Address();
+        return string(ipfsBytes);
+    }
+}
+```
+
+#### 合约已部署Ropsten，可作参考
+https://ropsten.etherscan.io/address/0x0581d89b0b4edf171a199937b1d16a1033ba7538
