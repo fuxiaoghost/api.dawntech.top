@@ -6,9 +6,9 @@
 所谓齐次坐标系就是将一个原本是n维的向量用一个n+1维向量来表示。对于一个向量v以及基oabc，可以找到一组坐标(v1,v2,v3)使得v=v1a+v2b+v3c（1-1）。而对于一个点p，则可以找到一组坐标(p1,p2,p3)使得p - o = p1a + p2b + p3c（1-2）
 从上面对向量和点的表达，我们可以看出为了在坐标系中表示一个点我们可以把点的位置看作是对于这个基的原点o所进行的一个位移，即一个向量p - o，我们在表达这个向量的同时用等价的方式表达出了点p: p = o + p1a + p2b + p3c（1-3）。（1-1），（1-3）是坐标系下表达一个向量和点的不同表达方式。这里可以看出，虽然都是用代数分量的形式表达向量和点，但表达一个点比一个向量需要额外的信息。如果我写一个代数分量表达(1,4,7)，谁知道它是个向量还是一个点。我们现在把(1-1),(1-3)写成矩阵的形式：
 
-![(1-4)](http://latex.codecogs.com/gif.latex?v=(v_%7B1%7D,v_%7B2%7D,v_%7B3%7D,0)%5Cbegin%7Bpmatrix%7D&space;a&space;%5C%5C&space;b&space;%5C%5C&space;c&space;%5C%5C&space;o&space;%5Cend%7Bpmatrix%7D)
+![(1-4)](http://latex.codecogs.com/gif.latex?v%3D%28v_%7B1%7D%2Cv_%7B2%7D%2Cv_%7B3%7D%2C0%29%5Cbegin%7Bpmatrix%7D%26%20a%20%26%20%5C%5C%26%20b%26%20%5C%5C%26%20c%26%20%5C%5C%26%20o%26%20%5Cend%7Bpmatrix%7D)
 
-![(1-5)](http://latex.codecogs.com/gif.latex?p=(p_%7B1%7D,p_%7B2%7D,p_%7B3%7D,1)%5Cbegin%7Bpmatrix%7D&space;a&space;%5C%5C&space;b&space;%5C%5C&space;c&space;%5C%5C&space;o&space;%5Cend%7Bpmatrix%7D)
+![(1-5)](http://latex.codecogs.com/gif.latex?p%3D%28p_%7B1%7D%2Cp_%7B2%7D%2Cp_%7B3%7D%2C1%29%5Cbegin%7Bpmatrix%7D%26%20a%26%20%5C%5C%26%20b%26%20%5C%5C%26%20c%26%20%5C%5C%26%20o%26%20%5Cend%7Bpmatrix%7D)
 
 这里(a b c o)是坐标基矩阵，左边的行向量分别是向量v和点p在基下的坐标。这样，向量和点再同一个基下就有了不同的表达：三维向量的第四个代数分量是0，而三维点的第四个代数分量是1。像这种用四个代数分量表示三维几何概念的方式是一种**齐次坐标**表示。这样，上面的(1,4,7)如果写成(1,4,7,0)，它就是个向量；如果是(1,4,7,1)它就是个点。
 由于齐次坐标使用了4个分量来表达3D概念或者说用了3个分量来表达2D概念，从而使得放射变换可以使用矩阵进行。
@@ -34,7 +34,7 @@ x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 平移变换是将图形中的每一个点从一个位置(x,y)移动到另一个位置(x',y')的变换，tx，ty称为平移距离，则平移变换公式为：
 
-![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;x&space;&plus;&space;t_{x}\\&space;y'&space;=&space;y&space;&plus;&space;t_{y}&space;\end{matrix}\right.)
+![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}& x'& =& x& &plus;& t_{x}\\& y'& =& y& &plus;& t_{y}& \end{matrix}\right.)
 
 ![平移变换](https://upload-images.jianshu.io/upload_images/3018197-5271eecca181a2d7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
@@ -42,15 +42,15 @@ x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 旋转变换是以某个参考点为圆心，将图像上的各点(x,y)围绕圆心转动一个逆时针角度θ，变为新的坐标(x',y')的变换。当参考点为(0,0)时，旋转变换的公式为：
 
-![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D&space;x%27&space;=&space;r&space;cos(%5Calpha&space;&plus;&space;%5Ctheta)&space;=&space;r&space;cos%5Calpha&space;cos%5Ctheta&space;-&space;r&space;sin%5Calpha&space;sin%5Ctheta%5C%5C&space;y%27&space;=&space;r&space;sin(%5Calpha&space;&plus;&space;%5Ctheta)&space;=&space;r&space;sin%5Calpha&space;cos%5Ctheta&space;&plus;&space;r&space;cos%5Calpha&space;sin%5Ctheta&space;%5Cend%7Bmatrix%7D%5Cright.)
+![](![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20rcos%28%5Calpha%20&plus;%20%5Ctheta%29%20%3D%20r%20cos%5Calpha%20cos%5Ctheta%20-%20r%20sin%5Calpha%20sin%5Ctheta%5C%5C%20y%27%20%3D%20rsin%28%5Calpha%20&plus;%5Ctheta%29%20%3D%20r%20sin%5Calpha%20cos%5Ctheta%20&plus;%20r%20cos%5Calpha%20sin%5Ctheta%20%5Cend%7Bmatrix%7D%5Cright.))
 
 由于：
 
-![](http://latex.codecogs.com/gif.latex?x&space;=&space;r&space;cos\alpha,&space;y&space;=&space;r&space;sin\alpha)
+![](http://latex.codecogs.com/gif.latex?x& =& r& cos\alpha,& y& =& r& sin\alpha)
 
 所以可化简为：
 
-![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;x&space;cos\theta&space;-&space;y&space;sin\alpha\\&space;y'&space;=&space;y&space;cos\theta&space;&plus;&space;x&space;sin\alpha&space;\end{matrix}\right.)
+![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}& x'& =& x& cos\theta& -& y& sin\alpha\\& y'& =& y& cos\theta& &plus;& x& sin\alpha& \end{matrix}\right.)
 
 ![旋转变换](https://upload-images.jianshu.io/upload_images/3018197-ad5eac2129d80ca7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
