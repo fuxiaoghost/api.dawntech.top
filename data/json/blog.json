@@ -1,6 +1,20 @@
 {
     "items": [
         {
+            "id": "b0014",
+            "title": "UIView.transform的高级玩法",
+            "desc": "最近在重构之前上架的一款画板应用，期间用到了一些UIView的transform相关的特性。借此机会也系统整理了一下transform相关的知识",
+            "target": "/api/static/blogs/14/14.markdown",
+            "date": "2018-11-03"
+        },
+        {
+            "id": "b0013",
+            "title": "0-1背包的有趣应用",
+            "desc": "前端开发过程中我们经常会遇到这样的问题，我们需要在一个宽度固定的区域显示一些长度不固定的标签或者按钮",
+            "target": "/api/static/blogs/13/13.markdown",
+            "date": "2018-09-16"
+        },
+        {
             "id": "b0012",
             "title": "IPFS文件地址链上存储",
             "desc": "IPFS文件地址链上存储方案探索",

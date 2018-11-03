@@ -1,0 +1,167 @@
+直接开始问题，前端开发过程中我们经常会遇到这样的问题，我们需要在一个宽度固定的区域显示一些长度不固定的标签或者按钮。
+画个图说明一下
+
+![](https://upload-images.jianshu.io/upload_images/3018197-b9f50d21a9055c2e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+这是一种看着比较舒服的情况，当然因为每个标签的长度不固定也有可能出现其他的情况
+
+![](https://upload-images.jianshu.io/upload_images/3018197-a599e29535dfb908.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+由于第一行已经没有足够的空间用来填充接下来的标签，因此只能把这个位置空出来换一行接着填充，依次处理，右边就会多出很多空白的区域不能利用。
+
+**在不考虑标签显示顺序的情况下**，有没有一种办法能让整个区域填充的饱满一点，也就是右侧空白区域尽可能的小。
+
+我们把这个问题简单抽象一下：定义整个显示区域的宽度为*W*；每个Tag的宽度为*w<sub>i</sub>*；是否选取某个Tag为*x<sub>i</sub>*={0,1}
+针对于每一行要求：
+
+![](https://upload-images.jianshu.io/upload_images/3018197-6adbf031062526b6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+期望：
+
+![](https://upload-images.jianshu.io/upload_images/3018197-109f540d51008970.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+能够达到最大
+
+经过抽象之后问题就变得明朗了，典型的一种[组合优化](https://zh.wikipedia.org/wiki/%E7%BB%84%E5%90%88%E4%BC%98%E5%8C%96 "组合优化")的[NP完全](https://zh.wikipedia.org/wiki/NP%E5%AE%8C%E5%85%A8 "NP完全")问题，再具体一点就是[0-1背包问题](https://zh.wikipedia.org/wiki/%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98)
+背包问题有很多种求解方式，这里选择一种动态规划的解法。
+背包问题：给定 n 种物品和一个容量为C的背包，物品 i 的重量是 *w<sub>i</sub>*，其价值为 *v<sub>i</sub>* 。
+应该如何选择装入背包的物品，使得装入背包中的物品的总价值最大？
+面对每个物品，我们只有选择拿取或者不拿两种选择，不能选择装入某物品的一部分，也不能装入同一物品多次
+
+声明一个 大小为  `m[n][c]` 的二维数组，`m[ i ][ j ]` 表示 在面对第 i 件物品，且背包容量为  j 时所能获得的最大价值 ，那么我们可以很容易分析得出 m[i][j] 的计算方法，
+
+* `j < w[i]` 的情况，这时候背包容量不足以放下第 i 件物品，只能选择不拿
+`m[ i ][ j ] = m[ i-1 ][ j ]`
+* `j>=w[i]` 的情况，这时背包容量可以放下第 `i` 件物品，我们就要考虑拿这件物品是否能获取更大的价值。
+
+如果拿取，`m[ i ][ j ]=m[ i-1 ][ j-w[ i ] ] + v[ i ]`。 这里的 `m[ i-1 ][ j-w[ i ]` ]指的就是考虑了`i-1`件物品，背包容量为`j-w[i]`时的最大价值，也是相当于为第`i`件物品腾出了`w[i]`的空间。
+
+如果不拿，`m[ i ][ j ] = m[ i-1 ][ j ]` , 同（1）
+
+究竟是拿还是不拿，自然是比较这两种情况那种价值最大
+由此可以得到状态转移方程：
+
+```
+if(j>=w[i])  
+    m[i][j]=max(m[i-1][j],m[i-1][j-w[i]]+v[i]);  
+else  
+    m[i][j]=m[i-1][j];  
+```
+
+针对于我们这里的问题`vi=wi`，我们期待的背包物品的价值就是物品的重量，具体算法实现
+
+```
+/**
+ 背包算法
+
+ @param vws 价值&重量输入(每个Tag的宽度)
+ @param width 背包容量(每行Tag能占用的最大宽度)
+ @return 背包内容物品选择情况(Tag的选择情况)
+ */
+- (NSIndexSet *)backpack:(NSArray<NSNumber *> *)vws width:(NSInteger)width
+{
+    // 背包可选择物品数量
+    int n = (int)vws.count;
+    
+    // 背包容量
+    int c = (int)width;
+    
+    // 物品价值数组
+    int *v = malloc(sizeof(int) * (n + 1));
+    
+    // 物品重量数组
+    int *w = malloc(sizeof(int) * (n + 1));
+    
+    // 初始化价值数组和重量数组
+    *v = 0;
+    *w = 0;
+    int *vh = v;
+    int *wh = w;
+    for (int i = 0; i < n; i++) {
+        *++vh = [vws[i] intValue];
+        *++wh = [vws[i] intValue];
+    }
+    
+    // 构造二维转移矩阵，并初始化为0
+    int **m = (int **)malloc(sizeof(int *) * (n + 1));
+    for(int i = 0; i < n + 1; i++) {
+        *(m + i) = (int *)malloc(sizeof(int) * (c + 1));
+        for (int j = 0; j < c + 1; j++) {
+            *(*(m + i) + j) = 0;
+        }
+    }
+    
+    // 构造转移矩阵
+    for(int i = 1; i <= n; i++) {
+        for (int j = 1; j <= c; j++) {
+            if (j >= w[i]) {
+                m[i][j] = MAX(m[i - 1][j], m[i - 1][j - w[i]] + v[i]);
+            }else {
+                m[i][j] = m[i - 1][j];
+            }
+        }
+    }
+    
+    // 标记物品选择情况
+    int *x = malloc(sizeof(int) * (n + 1));
+    for(int i = n; i > 1; i--) {
+        if(m[i][c] == m[i-1][c]) {
+            x[i] = 0;
+        }else {
+            x[i] = 1;
+            c-= w[i];
+        }
+    }
+    x[1] = (m[1][c] > 0) ? 1 : 0;
+    
+    // 返回物品选择情况
+    NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
+    for (int i = 1; i <= n; i++) {
+        if (x[i] == 1) {
+            [indexSet addIndex:i - 1];
+        }
+    }
+    
+    // 回收资源
+    free(v);
+    free(w);
+    free(x);
+    for(int i = 0; i < n; i++) {
+        free(*(m + i));
+    }
+    
+    return indexSet;
+}
+```
+
+在求得了转移矩阵之后还需要知道具体是选择了哪个物品，另起一个 `x[ ]` 数组，`x[i]=0`表示不拿，`x[i]=1`表示拿。`m[n][c]`为最优值，如果`m[n][c]=m[n-1][c]` ,说明有没有第n件物品都一样，则`x[n]=0` ; 否则 `x[n]=1`。当`x[n]=0`时，由`x[n-1][c]`继续构造最优解；当`x[n]=1`时，则由`x[n-1][c-w[i]]`继续构造最优解。以此类推，可构造出所有的最优解。
+
+```
+ // 标记物品选择情况
+    int *x = malloc(sizeof(int) * (n + 1));
+    for(int i = n; i > 1; i--) {
+        if(m[i][c] == m[i-1][c]) {
+            x[i] = 0;
+        }else {
+            x[i] = 1;
+            c-= w[i];
+        }
+    }
+    x[1] = (m[1][c] > 0) ? 1 : 0;
+    
+    // 返回物品选择情况
+    NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
+    for (int i = 1; i <= n; i++) {
+        if (x[i] == 1) {
+            [indexSet addIndex:i - 1];
+        }
+    }
+```
+
+完整代码参考：
+https://github.com/fuxiaoghost/BackpackAlgorithm
+
+我们看看最终完成的效果，虽然丑了点，但是效果还不错
+
+![背包砌墙](https://upload-images.jianshu.io/upload_images/3018197-4518a9282c649059.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+

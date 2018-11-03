@@ -1,0 +1,544 @@
+最近在重构之前上架的一款画板应用，期间用到了一些UIView的transform相关的特性。借此机会也系统整理了一下transform相关的知识。
+在进入正题之前需要补充一点线性代数(数学专业应该叫高等代数)相关的知识。
+
+## 齐次坐标系
+
+所谓齐次坐标系就是将一个原本是n维的向量用一个n+1维向量来表示。对于一个向量v以及基oabc，可以找到一组坐标(v<sub>1</sub>,v<sub>2</sub>,v<sub>3</sub>)使得v=v<sub>1</sub>a+v<sub>2</sub>b+v<sub>3</sub>c（1-1）。而对于一个点p，则可以找到一组坐标(p<sub>1</sub>,p<sub>2</sub>,p<sub>3</sub>)使得p - o = p<sub>1</sub>a + p<sub>2</sub>b + p<sub>3</sub>c（1-2）
+从上面对向量和点的表达，我们可以看出为了在坐标系中表示一个点我们可以把点的位置看作是对于这个基的原点o所进行的一个位移，即一个向量p - o，我们在表达这个向量的同时用等价的方式表达出了点p: p = o + p<sub>1</sub>a + p<sub>2</sub>b + p<sub>3</sub>c（1-3）。（1-1），（1-3）是坐标系下表达一个向量和点的不同表达方式。这里可以看出，虽然都是用代数分量的形式表达向量和点，但表达一个点比一个向量需要额外的信息。如果我写一个代数分量表达(1,4,7)，谁知道它是个向量还是一个点。我们现在把(1-1),(1-3)写成矩阵的形式：
+
+![(1-4)](http://latex.codecogs.com/gif.latex?v=(v_{1},v_{2},v_{3},0)\begin{pmatrix}&space;a&space;\\&space;b&space;\\&space;c&space;\\&space;o&space;\end{pmatrix})
+
+![(1-5)](http://latex.codecogs.com/gif.latex?p=(p_{1},p_{2},p_{3},1)\begin{pmatrix}&space;a&space;\\&space;b&space;\\&space;c&space;\\&space;o&space;\end{pmatrix})
+
+这里(a b c o)是坐标基矩阵，左边的行向量分别是向量v和点p在基下的坐标。这样，向量和点再同一个基下就有了不同的表达：三维向量的第四个代数分量是0，而三维点的第四个代数分量是1。像这种用四个代数分量表示三维几何概念的方式是一种**齐次坐标**表示。这样，上面的(1,4,7)如果写成(1,4,7,0)，它就是个向量；如果是(1,4,7,1)它就是个点。
+由于齐次坐标使用了4个分量来表达3D概念或者说用了3个分量来表达2D概念，从而使得放射变换可以使用矩阵进行。
+
+## 平面几何变换的定义
+
+如果有一种法则T，对平面点集中的每个点A，都对应平面上唯一的一个点T(A)，则T称为平面上的一个变换，T(A)称为A的像。变换是函数概念的自然推广。
+平面上的图形由点组成，因而平面上的变换T会将一个图形C变到另一个图形T(C)，T(C)称为C的像。从这个意义上说，可以称T为几何变换。例如对图形作平移变换、旋转变换、缩放变换、对称变换等都是几何变换。
+在平面直角坐标系中，点A由坐标(x,y)表示。在变换T下，点A(x,y)的像为A'(x',y')，其中x'和y'都是x,y的函数：
+x' = f<sub>1</sub>(x,y), y' = f<sub>2</sub>(x,y)
+因此，函数f<sub>1</sub>，f<sub>2</sub>能够确定一个平面上的变换T。如果能够从方程组中反解出x和y:
+x = g<sub>1</sub>(x', y'), y = g<sub>2</sub>(x', y')
+则由函数g<sub>1</sub>,g<sub>2</sub>确定了T的逆变换，记为T<sup>-1</sup>。设平面曲线C的参数方程为：
+x = x(t), y = y(t), t∈D
+其中D是函数x(t),y(t)的定义域，则曲线C在变换T下的像T(C)的参数方程为
+x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
+
+## 平面几何变换及其矩阵表示
+
+### 平面图形几何变换
+
+#### 1、平移变换
+
+平移变换是将图形中的每一个点从一个位置(x,y)移动到另一个位置(x',y')的变换，t<sub>x</sub>，t<sub>y</sub>称为平移距离，则平移变换公式为：
+
+![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;x&space;&plus;&space;t_{x}\\&space;y'&space;=&space;y&space;&plus;&space;t_{y}&space;\end{matrix}\right.)
+
+![平移变换](https://upload-images.jianshu.io/upload_images/3018197-5271eecca181a2d7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+#### 2、旋转变换
+
+旋转变换是以某个参考点为圆心，将图像上的各点(x,y)围绕圆心转动一个逆时针角度θ，变为新的坐标(x',y')的变换。当参考点为(0,0)时，旋转变换的公式为：
+
+![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;r&space;cos(\alpha&space;&plus;&space;\theta)&space;=&space;r&space;cos\alpha&space;cos\theta&space;-&space;r&space;sin\alpha&space;sin\theta\\&space;y'&space;=&space;r&space;sin(\alpha&space;&plus;&space;\theta)&space;=&space;r&space;sin\alpha&space;cos\theta&space;&plus;&space;r&space;cos\alpha&space;sin\theta&space;\end{matrix}\right.)
+
+由于：
+
+![](http://latex.codecogs.com/gif.latex?x&space;=&space;r&space;cos\alpha,&space;y&space;=&space;r&space;sin\alpha)
+
+所以可化简为：
+
+![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;x&space;cos\theta&space;-&space;y&space;sin\alpha\\&space;y'&space;=&space;y&space;cos\theta&space;&plus;&space;x&space;sin\alpha&space;\end{matrix}\right.)
+
+![旋转变换](https://upload-images.jianshu.io/upload_images/3018197-ad5eac2129d80ca7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+#### 3、比例变换
+
+比例变换是使对象按比例因子(s<sub>x</sub>,s<sub>y</sub>)放大或缩小的变换
+
+![](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%3Dxs_%7Bx%7D%5C%5C%20y%27%3Dys_%7By%7D%20%5Cend%7Bmatrix%7D%5Cright.)
+
+![比例变换](https://upload-images.jianshu.io/upload_images/3018197-799d99b200e8b5c7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+### 平面图形几何变换的矩阵表示
+
+二维图形的几何变换实现可以用矩阵T<sub>2D</sub>表示
+
+![](http://latex.codecogs.com/gif.latex?T_%7B2D%7D%3D%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%26%20g%20%5C%5C%20b%20%26%20e%20%26%20h%20%5C%5C%20c%20%26%20f%20%26%20i%20%5Cend%7Bbmatrix%7D)
+
+从变换功能上可以把T<sub>2D</sub>分为四个子矩阵。其中
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%5C%5C%20b%20%26%20e%20%5C%5C%20%5Cend%7Bbmatrix%7D)
+
+是对图形的缩放、旋转、对称、错切等变换；
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20c%20%26%20f%20%5Cend%7Bpmatrix%7D)
+
+是对图形进行平移变换；
+
+![](http://latex.codecogs.com/gif.latex?%5Cbinom%7Bg%7D%7Bh%7D)
+
+是对图形作投影变换，g的作用是在x轴的1/g处产生一个灭点，而h的作用是在y轴的1/h处产生一个灭点；i是对整个图形做伸缩变换。平移变换、旋转变换、比例变换、错切变换这4中基本变换都可以表示为3x3的变换矩阵和齐次坐标相乘的形式
+
+#### 1、平移变换的矩阵表示
+
+平移变换的矩阵表示为
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx%7D%20%26%20t_%7By%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+t<sub>x</sub>,t<sub>y</sub>分别表示x轴方向和y轴方向的平移距离。
+
+####2、旋转变换矩阵表示
+
+旋转变换的矩阵表示为
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta%20%26%20sin%5Ctheta%20%26%200%5C%5C%20-sin%5Ctheta%20%26%20cos%5Ctheta%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+逆时针旋转时θ取正值，顺时针旋转时θ取负值
+
+####3、比例变换的矩阵表示
+
+比例变换的矩阵表示为
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%26%200%5C%5C%20b%20%26%20e%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+* 当b=d=0时，a和e的取值决定了缩放效果，a和e>1放大，<1缩小
+* 当b=d=0,a=-1,e=1时有x'=-x,y'=y产生与y轴对称的图形
+* 当b=d=0,a=1,e=-1时有x'=x,y'=-y产生与x轴对称的图形
+* 当b=d=0,a=e=-1时有x'=-x,y'=-y产生与原点对称的图形
+* 当b=d=1,a=e=0时有x'=y,y'=x产生与直线y=x对称的图形
+* 当b=d=-1,a=e=0时有x'=-y,y'=-x产生与直线y=-x对称的图形
+
+####4、错切变换的矩阵表示
+
+错切变换的矩阵表示为
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%201%20%26%20d%20%26%200%5C%5C%20b%20%26%201%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+其中当d = 0时，x' = x + by， y' = y，此时，图形的y坐标不变，x坐标随初值(x, y)及变换系数b作线性变化；当b = 0时，x' = x，y' = dx + y，此时，图形的x坐标不变，y坐标随初值(x, y)及变换系数d作线性变化。
+
+####5、复合变换
+
+一个比较复杂的变换要连续进行若干个基本变换才能完成。例如围绕任意点(x<sub>f</sub>, y<sub>f</sub>)的旋转，需要通过3个基本变换T(x<sub>f</sub>, y<sub>f</sub>)，R(θ)，T(x<sub>f</sub>, y<sub>f</sub>)才能完成。这些由基本变换构成的连续变换序列称为复合变换。
+变换的矩阵形式使得复合变换的计算工作量大为减少。以绕任意点旋转为例，本应进行如下3次变换，分别是
+
+* p' = pT(-x<sub>f</sub>, -y<sub>f</sub>) 将原点移动到任意点位置
+* p'' = p'R(θ) 旋转
+* p = p''T(x<sub>f</sub>, y<sub>f</sub>) 将原点归位
+
+合并之后为p = pT(-x<sub>f</sub>, -y<sub>f</sub>)R(θ)T(x<sub>f</sub>, y<sub>f</sub>)
+令T<sub>c</sub> = T(-x<sub>f</sub>, -y<sub>f</sub>)R(θ)T(x<sub>f</sub>, y<sub>f</sub>)则有p = pT<sub>c</sub>，T<sub>c</sub>称为复合变换矩阵。由上面推到可知在计算复合变换时，首先可将各基本变换矩阵按次序想乘，形成总的复合变换矩阵T<sub>c</sub>然后，坐标只需与T<sub>c</sub>想乘一次，便可同时完成一连串基本变换。因此采用复合变换矩阵可以大大节省坐标乘法所耗费的运算时间。下面我们看几个基本的复合变换：
+复合平移：
+对同一图形做两次平移相当于将两次平移相加起来，即
+
+![](http://latex.codecogs.com/gif.latex?T%28t_%7Bx1%7D%2Ct_%7By1%7D%29T%28t_%7Bx2%7D%2Ct_%7By2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx1%7D%20%26%20t_%7By1%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx2%7D%20%26%20t_%7By2%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx1%7D%20&plus;%20t_%7Bx2%7D%20%26%20t_%7By1%7D%20&plus;%20t_%7By2%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+复合缩放：
+以原点为参考点对同一图形做两次连续的缩放相当于将缩放操作相乘，即:
+
+![](http://latex.codecogs.com/gif.latex?S%28s_%7Bx1%7D%2Cs_%7By1%7D%29S%28s_%7Bx2%7D%2Cs_%7By2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx1%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By1%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx2%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx1%7Ds_%7Bx2%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By1%7Ds_%7By2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+复合旋转：
+以原点为参考点对同一图形做两次连续的旋转相当于将两次的旋转角度相加， 即:
+
+![](http://latex.codecogs.com/gif.latex?R%28%5Ctheta_%7B1%7D%29R%28%5Ctheta_%7B2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta_%7B1%7D%20%26%20sin%5Ctheta_%7B1%7D%20%26%200%5C%5C%20-sin%5Ctheta_%7B1%7D%20%26%20cos%5Ctheta_%7B1%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta_%7B2%7D%20%26%20sin%5Ctheta_%7B2%7D%20%26%200%5C%5C%20-sin%5Ctheta_%7B2%7D%20%26%20cos%5Ctheta_%7B2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20cos%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%20sin%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%200%5C%5C%20-sin%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%20cos%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+缩放、旋转变换都与参考点有关，上面进行的各种缩放、旋转变换都是以原点为参考点的。如果相对某个一般的参考点(x<sub>f</sub>,y<sub>f</sub>)作缩放、旋转变换，相当于将该点移到坐标原点处，然后进行缩放、旋转变换，最后将(x<sub>f</sub>,y<sub>f</sub>)点移回原来的位置。如关于(x<sub>f</sub>,y<sub>f</sub>)的缩放变换为：
+
+![](http://latex.codecogs.com/gif.latex?S%28x_%7Bf%7D%2Cy_%7Bf%7D%2Cs_%7Bx%7D%2Cs_%7By%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7Bf%7D%20%26%20-y_%7Bf%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7Bf%7D%20%26%20y_%7Bf%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%20x_%7Bf%7D%281%20-%20s_%7Bx%7D%29%20%26%20y_%7Bf%7D%281%20-%20s_%7By%7D%29%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+各种复杂的变换无非是一些基本变换的组合，利用数学方法也就是矩阵的 乘法来解决复合变换问题，关键是将其分解为一定顺序的基本变换，然后逐一 进行这些基本变换;或者求出这些基本变换矩阵连乘积，即求出复合变换矩阵， 从而使复合变化问题得到解决。
+
+写了这么多只是想把平面仿射变换的基本原理描述清楚，以便能对UIView.transform有更深入的理解。
+接下来我们进入正题
+
+## UIView外部坐标系
+
+这里说的坐标系是UIView相对于其父视图的相对位置和大小
+
+![UIView外部坐标系](https://upload-images.jianshu.io/upload_images/3018197-c4341afa0c14de46.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+如上图以父视图左上角为坐标原点，x轴从原点向右递增，y轴从原点向下递增，通过改变UIView的frame和center可以调整UIView的位置和大小，当然UIView是对CALayer的封装也可以直接调整layer的frame和position达到相同的效果。
+基于此我们可以调整UIView的位置和大小，或者通过UIView的位置和大小进行适当的动画展示，当然也仅限于此，对于旋转、切变是无能为力的。
+* 设置View的frame和center会改变其位置和大小，同时会改变View的bounds，bounds是View相对于自身的尺寸bounds=(0,0,view.width,view.height)
+* 设置完成frame或者center之后可以通过调整bounds重新设置frame，如果frame = (x,y,w,h) 重新设置bounds = (0,0,w',h')则新的frame=(x',y',w',h')
+
+![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20%28w-w%27%29/2%20&plus;%20x%5C%5C%20y%27%20%3D%20%28h-h%27%29/2%20&plus;%20y%20%5Cend%7Bmatrix%7D%5Cright.)
+
+* 当然如果在设置完bounds之后再设置frame则bounds会被重置为(0,0,view.width,view.height)
+
+## UIView内部坐标系
+
+UIView除了刚刚我们说的外部坐标系，还有一个内部坐标系。
+
+![UIView内部坐标系](https://upload-images.jianshu.io/upload_images/3018197-a58d4f5c85c626ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+跟笛卡尔坐标系(直角坐标系)稍微有点区别，以UIView视图中心为坐标原点，x轴从原点向右递增，y轴从原点向下递增，通过改变UIView的transform可以对其进行仿射变换，如上面我们提到的缩放、旋转、平移、切变等。有了这个特性UIView能做的事情就更多了，当然也可以借此做更有意思的动画。
+在内部坐标系中原点的位置可以通过anchorPoint调整，UIView没有开放出来，可以访问CALayer获取。
+
+![anchorPoint](https://upload-images.jianshu.io/upload_images/3018197-1223cee70189d509.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+参考上图通过调整anchorPoint的值可以修改内部坐标系的原点位置，设置(0,0)可以把原点移动到View的左上角，设置(1,1)可以把原点移动到右下角，设置(0.5, 0.5)可以把原点移动到View中心。当然anchorPoint的值也不限制在[0,1]，可以推广到任意浮点值，相应的调整规则类似，比如设置为(-1,-1)则可以把原点移动到左上角再向左上偏移一个View的位置。
+anchorPoint值的修改不只会调整原点位置，同时也会修改View的frame，修改规则如下：
+
+![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20x%20&plus;%20w.%280%20-%20x_%7Banchor%7D%29%5C%5C%20y%27%20%3D%20y%20&plus;%20h.%280%20-%20y_%7Banchor%7D%29%20%5Cend%7Bmatrix%7D%5Cright.)
+
+基于View的transform可以进行仿射变换，所有的变化都是基于原点位置进行的，因此anchorPoint的设置可以产生更多有意思的效果，
+后续我们一个个看
+
+跟anchorPoint的设置一样，transform的设置也会引起frame的调整
+
+![Transform修改](https://upload-images.jianshu.io/upload_images/3018197-babc4fede5530710.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+见上图以旋转变换为例，旋转变换会让原有图形的frame从白色框变为虚线框，我们假设原有View的四个点为p<sub>0</sub> p<sub>1</sub> p<sub>2</sub> p<sub>3</sub> 则旋转变换之后的点为：
+p<sub>0</sub>' = p<sub>0</sub>T(θ)
+p<sub>1</sub>' = p<sub>1</sub>T(θ)
+p<sub>2</sub>' = p<sub>2</sub>T(θ)
+p<sub>3</sub>' = p<sub>3</sub>T(θ)
+则frame = (x',y',w',h')
+
+![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20min%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%5C%5C%20y%27%20%3D%20min%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%5C%5C%20w%27%20%3D%20max%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%20-%20min%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%5C%5C%20h%27%20%3D%20max%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%20-%20min%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%20%5C%5C%20%5Cend%7Bmatrix%7D%5Cright.)
+
+## UIView内部坐标系和外部坐标系的联系
+
+我们把上面提到的两个坐标系结合起来看一下
+
+![内外坐标系](https://upload-images.jianshu.io/upload_images/3018197-412f97ecdbc47ec5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+影响View位置和形状的几个参数有：
+
+* frame
+* center
+* transform
+* bounds
+* anchorPoint
+
+遵循如下规则：
+
+* 在设置transform之前可以通过frame和center调整View的大小和尺寸，frame的改变会影响bounds，设置bounds会重新修改frame和center，规则参考之前
+* View的transform参考内部坐标系，transform的改变会影响frame和center，但是不会修改bounds
+* 在设置了transform修改之后仍然可以通过调整bounds来修改frame和center也可以直接修改center，transform会根据新的bounds和center来计算新的frame，参考之前
+* anchorPoint的修改会影响transform的原点位置从而产生不同的变换效果，也会引起frame的重新计算
+
+## UIView.transform的高级玩法
+
+上面的理论知识已经写了很多了，接下来我们实际体验一下，看一下View的transform结构
+
+```
+struct CGAffineTransform {
+  CGFloat a, b, c, d;
+  CGFloat tx, ty;
+};
+```
+
+结合上面关于线性代数相关的知识，可以发现View的transform最终都转换成了矩阵运算
+
+### UIView的复合变换
+
+```
+UIView *view = [UIView new];
+view.backgroundColor = [UIColor redColor];
+view.frame = CGRectMake(200, 200, 100, 100);
+[self.view addSubview:view];
+[UIView animateWithDuration:5 animations:^{
+    // 先平移
+    CGAffineTransform move = CGAffineTransformMakeTranslation(100, 100);
+    // 后旋转
+    CGAffineTransform rotation = CGAffineTransformMakeRotation(M_PI);
+    view.transform = CGAffineTransformConcat(rotation, move);
+}];
+```
+
+![先平移后旋转](https://upload-images.jianshu.io/upload_images/3018197-992685edb73401d6.gif?imageMogr2/auto-orient/strip)
+
+先不解释，我们接着再看一个变换
+
+```
+UIView *view = [UIView new];
+view.backgroundColor = [UIColor redColor];
+view.frame = CGRectMake(200, 200, 100, 100);
+[self.view addSubview:view];
+[UIView animateWithDuration:5 animations:^{
+    // 先旋转
+    CGAffineTransform rotation = CGAffineTransformMakeRotation(M_PI);
+    // 后平移
+    CGAffineTransform move = CGAffineTransformMakeTranslation(100, 100);
+    view.transform = CGAffineTransformConcat(move,rotation);
+}];
+```
+
+![先旋转后平移](https://upload-images.jianshu.io/upload_images/3018197-633343849f5cb129.gif?imageMogr2/auto-orient/strip)
+
+综合上面两个不同顺序的变换，由于View内部坐标系的原点在复合变换的过程中一直跟随View在移动因此平移和旋转的顺序会决定不同的结果。
+
+* 如果原点在整个变换过程中一直不变，则需要先旋转后平移
+* 如果原点在整个变换过程中一直跟随View，则需要先平移后旋转
+
+目的就是保证旋转始终是围绕原点进行
+
+### AnchorPoint
+
+如果不修改AnchorPoint则所有的变化都是基于View的中心进行，但是可以通过修改anchorPoint改变原点的位置从而改变变换的效果
+
+```
+UIView *view = [UIView new];
+view.backgroundColor = [UIColor redColor];
+view.frame = CGRectMake(200, 200, 100, 100);
+[self.view addSubview:view];
+view.layer.anchorPoint = CGPointMake(0, 0);
+[UIView animateWithDuration:5 animations:^{
+    view.transform = CGAffineTransformMakeRotation(M_PI);
+}];
+```
+
+![绕点旋转](https://upload-images.jianshu.io/upload_images/3018197-321c6c8909376447.gif?imageMogr2/auto-orient/strip)
+
+如上图可以实现绕点旋转的效果
+
+### 综合应用
+
+借用一个案例来对transform做一个综合的应用，这个案例也是从实际项目中产生的。先看最终效果：
+
+![综合应用](https://upload-images.jianshu.io/upload_images/3018197-f4186cd1526b5ba2.gif?imageMogr2/auto-orient/strip)
+
+最近在用一些零散的时间重构之前上架的一款画板应用，希望为画布增加更加灵活的操作方式，在双指拖拽画布的同时可以实现定点的缩放和旋转，可以通过双指点击完成笔迹的撤销，通过三指点击完成笔迹的重做。
+
+把问题拆解一下，为了达到上面展示的效果，需要解决以下问题：
+
+* 手势的控制，双指拖拽，双指捏合，双指旋转
+* 处理各手势之间的冲突和配合
+* 处理View的平移、旋转、缩放复合变换
+* 其中旋转和缩放变换要以双指连线的中点为旋转或缩放中心
+
+#### 手势控制
+
+综合分析以上问题首先需要为画布增加一个容器，然后才能在容器上添加手势，通过手势控制画布的frame和transform
+
+```
+/// 画布
+var canvasView: UIView? = nil {
+    didSet {
+        if self.canvasView != nil {
+            self.addSubview(self.canvasView!);
+            self.canvasView?.backgroundColor = UIColor.white;
+            // 移动到容器中心
+            self.canvasView!.center = CGPoint(x: self.bounds.size.width/2, y: self.bounds.size.height/2);
+            // transform归零，设置为单位矩阵
+            self.canvasView!.transform = CGAffineTransform.identity;
+        }
+    }
+}
+```
+
+添加需要的手势
+
+```
+// 双指点击
+let doubleTouchesGesture = UITapGestureRecognizer(target: self, action: #selector(gestureRecognizer(gesture:)));
+doubleTouchesGesture.numberOfTapsRequired = 1;
+doubleTouchesGesture.numberOfTouchesRequired = 2;
+doubleTouchesGesture.delegate = self;
+self.addGestureRecognizer(doubleTouchesGesture);
+
+// 三指点击
+let tripleTouchesGesture = UITapGestureRecognizer(target: self, action: #selector(gestureRecognizer(gesture:)));
+tripleTouchesGesture.numberOfTapsRequired = 1;
+tripleTouchesGesture.numberOfTouchesRequired = 3;
+tripleTouchesGesture.delegate = self;
+self.addGestureRecognizer(tripleTouchesGesture);
+
+// 缩放
+let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(gestureRecognizer(gesture:)));
+pinchGesture.delegate = self;
+self.addGestureRecognizer(pinchGesture);
+
+// 移动
+let panGesture = UIPanGestureRecognizer(target: self, action: #selector(gestureRecognizer(gesture:)));
+panGesture.minimumNumberOfTouches = 2;
+panGesture.delegate = self;
+self.addGestureRecognizer(panGesture);
+
+// 旋转
+let rotationGesture = UIRotationGestureRecognizer(target: self, action: #selector(gestureRecognizer(gesture:)));
+rotationGesture.delegate = self;
+self.addGestureRecognizer(rotationGesture)
+```
+
+我们需要旋转、移动和缩放同时触发并且在触发旋转、移动或者缩放的时候双指点击不能被触发，但是如果用户使用三指点击时，三指手势要优先触发。因此需要对手势的delegate做一点处理
+
+```
+// MARK: - UIGestureRecognizerDelegate
+extension CanvasContentView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // 各手势之间要并发进行
+        return true;
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if (gestureRecognizer is UIPanGestureRecognizer || gestureRecognizer is UIRotationGestureRecognizer || gestureRecognizer is UIPinchGestureRecognizer) && otherGestureRecognizer is UITapGestureRecognizer {
+            // 移动、旋转、缩放时要避免双指点击触发
+            if otherGestureRecognizer.numberOfTouches == 3 {
+                // 三指点击时用户意图明显，因此要优先触发
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+}
+```
+
+这样各种手势就可以相互配达到我们的需求
+
+#### 绕固定点的旋转
+
+![绕固定点旋转](https://upload-images.jianshu.io/upload_images/3018197-4a418cfa4712585b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+如上图，如果是画布绕其中心旋转是很容易实现的，不需要调整View原点位置直接旋转θ角度即可。如果旋转点不在画布中心处理起来就要麻烦一点。有两种方案可以实现
+
+* 1、调整anchorPoint把View坐标原点移动到旋转点位置，然后通过transform设置让View旋转θ
+* 2、拆解绕点旋转变换为：先把View中心移动到目标位置，然后旋转θ角度
+
+分析一下看一下哪种方案更合适，如果调整anchorPoint必然会引起frame的改变，也就是center位置的变化，需要在anchorPoint调整之后恢复center的位置，另外如果View在初始状态是比较容易通过旋转中心点的坐标推算出anchorPoint的新位置，但是一旦View发生了旋转就很难再计算出新的anchorPoint的位置。而方案2只需要计算出旋转过程中View中心点的位置变化即可。
+根据之前的理论知识坐标系中的一个点绕另一个点的旋转变换可以表示为：
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%20%3D%20%28x%2C%20y%2C%201%29%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7B0%7D%20%26%20-y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta%20%26%20sin%5Ctheta%20%26%200%5C%5C%20-sin%5Ctheta%20%26%20cos%5Ctheta%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7B0%7D%20%26%20y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+化简之后为：
+
+![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20%28x%20-%20x_%7B0%7D%29cos%5Ctheta%20-%20%28y%20-%20y%7B0%7D%29sin%5Ctheta%20&plus;%20x_%7B0%7D%5C%5C%20%5C%5C%20x%27%20%3D%20%28y%20-%20y_%7B0%7D%29cos%5Ctheta%20&plus;%20%28x%20-%20x%7B0%7D%29sin%5Ctheta%20&plus;%20y_%7B0%7D%5C%5C%20%5Cend%7Bmatrix%7D%5Cright.)
+
+看一下部分代码实现：
+
+```
+private func rotateAt(center: CGPoint, rotation: CGFloat) {
+    self.gestureParams.rotation = self.gestureParams.rotation + rotation;
+    // x = (x1 - x0)cosθ - (y1 - y0)sinθ + x0
+    // y = (y1 - y0)cosθ + (x1 - x0)sinθ + y0
+    let x1 = self.canvasView!.center.x;
+    let y1 = self.canvasView!.center.y;
+    let x0 = center.x;
+    let y0 = self.bounds.size.height - center.y;
+    let x = (x1 - x0) * cos(rotation) - (y1 - y0) * sin(rotation) + x0
+    let y = (y1 - y0) * cos(rotation) + (x1 - x0) * sin(rotation) + y0;
+    
+    self.canvasView!.center = CGPoint(x: x, y: y);
+    self.canvasView!.transform =  CGAffineTransform.identity.rotated(by: self.gestureParams.rotation).scaledBy(x: self.gestureParams.scale, y: self.gestureParams.scale);
+}
+```
+
+#### 以固定点为中心缩放
+
+![以固定点为中心缩放](https://upload-images.jianshu.io/upload_images/3018197-70af3a7ab9031e9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+跟旋转类似以固定点为中心的缩放依然可以选择两种方案，我们依然以选择第二中方案，先把中心点移动到目标位置然后进行缩放
+变换矩阵表示为：
+
+![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%20%3D%20%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7B0%7D%20%26%20-y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7B0%7D%20%26%20y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+
+化简为：
+
+![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20s_%7Bx%7D%28x%20-%20x_%7B0%7D%29%20&plus;%20x_%7B0%7D%5C%5C%20y%27%20%3D%20s_%7By%7D%28y%20-%20y_%7B0%7D%29%20&plus;y_%7B0%7D%20%5Cend%7Bmatrix%7D%5Cright.)
+看一下部分代码
+
+```
+private func scaleAt(center: CGPoint, scale: CGFloat) {
+    // x' = Sx(x - x0) + x0
+    // y' = Sy(y - y0) + y0
+    let formerScale = self.gestureParams.scale;
+    self.gestureParams.scale = scale * self.gestureParams.scale;
+    self.gestureParams.scale = min(max(self.minScale, self.gestureParams.scale), self.maxScale);
+    let currentScale = self.gestureParams.scale/formerScale;
+    
+    let x = self.canvasView!.center.x;
+    let y = self.canvasView!.center.y;
+    let x1 = currentScale * (x - center.x) + center.x;
+    let y1 = currentScale * (y - center.y) + center.y;
+    self.canvasView!.center = CGPoint(x: x1, y: y1);
+    self.canvasView!.transform =  CGAffineTransform.identity.rotated(by: self.gestureParams.rotation).scaledBy(x: self.gestureParams.scale, y: self.gestureParams.scale);
+}
+```
+
+#### 手势信息收集和转换
+
+最主要的问题其实都已经解决掉了，接下来就是把手势信息转换为我们需要的数据即可，这里不做过多的解释了，直接贴代码：
+
+```
+// MARK: - Gestures
+extension CanvasContentView {
+    @objc func gestureRecognizer(gesture: UIGestureRecognizer) {
+        if self.canvasView != nil {
+            switch gesture {
+            case is UIPinchGestureRecognizer:
+                let pinchGesture = gesture as! UIPinchGestureRecognizer;
+                if pinchGesture.state == .began || pinchGesture.state == .changed {
+                    // 计算缩放的中心点和缩放比例，每次缩放的比例需要累计
+                    var center = pinchGesture.location(in: self);
+                    if pinchGesture.numberOfTouches == 2 {
+                        let center0 = pinchGesture.location(ofTouch: 0, in: self);
+                        let center1 = pinchGesture.location(ofTouch: 1, in: self);
+                        center = CGPoint(x: (center0.x + center1.x)/2, y: (center0.y + center1.y)/2);
+                    }
+                    self.scaleAt(center: center, scale: pinchGesture.scale);
+                    pinchGesture.scale = 1;
+                    self.delegate?.canvasContentView(self, scale: self.gestureParams.scale);
+                }
+                break;
+            case is UIPanGestureRecognizer:
+                let panGesture = gesture as! UIPanGestureRecognizer;
+                let location = panGesture.location(in: self);
+                if  panGesture.state == .began {
+                    // 记录开始位置
+                    self.gestureParams.from = location;
+                    self.gestureParams.lastTouchs = gesture.numberOfTouches;
+                }else if panGesture.state == .changed {
+                    if self.gestureParams.lastTouchs != panGesture.numberOfTouches {
+                        self.gestureParams.from = location;
+                    }
+                    // 计算偏移量
+                    self.gestureParams.lastTouchs = panGesture.numberOfTouches;
+                    let x = location.x - self.gestureParams.from.x;
+                    let y = location.y - self.gestureParams.from.y;
+                    self.gestureParams.from = location;
+                    self.translate(x: x, y: y);
+                    self.delegate?.canvasContentView(self, x: x, y: y);
+                }
+                break;
+            case is UIRotationGestureRecognizer:
+                let rotatioGesture = gesture as! UIRotationGestureRecognizer;
+                if rotatioGesture.state == .began || rotatioGesture.state == .changed {
+                    // 计算旋转的中心点和旋转角度，每次旋转的角度需要累计
+                    var center = rotatioGesture.location(in: self);
+                    if rotatioGesture.numberOfTouches == 2 {
+                        let center0 = rotatioGesture.location(ofTouch: 0, in: self);
+                        let center1 = rotatioGesture.location(ofTouch: 1, in: self);
+                        center = CGPoint(x: (center0.x + center1.x)/2, y: (center0.y + center1.y)/2);
+                    }
+                    self.rotateAt(center: center, rotation: rotatioGesture.rotation);
+                    rotatioGesture.rotation = 0;
+                    self.delegate?.canvasContentView(self, rotation: self.gestureParams.rotation);
+                }
+                break;
+            case is UITapGestureRecognizer:
+                let tapGesture = gesture as! UITapGestureRecognizer;
+                if tapGesture.numberOfTouches == 2 {
+                    self.delegate?.canvasContentView(self, tapTouches: 2);
+                }else if tapGesture.numberOfTouches == 3 {
+                    self.delegate?.canvasContentView(self, tapTouches: 3);
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+```
+
+#### 完整代码
+
+https://github.com/fuxiaoghost/CanvasContentView
+
+写了很多，总结一句，UIView在二维状态下的形变多数情况都可以转换为仿射变换或者多个仿射变换的复合变换，从而用矩阵运算的知识解决。以后再遇到比较有意思的问题我会继续补充……
