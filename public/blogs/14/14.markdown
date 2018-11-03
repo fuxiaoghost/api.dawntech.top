@@ -3,12 +3,12 @@
 
 ## 齐次坐标系
 
-所谓齐次坐标系就是将一个原本是n维的向量用一个n+1维向量来表示。对于一个向量v以及基oabc，可以找到一组坐标(v<sub>1</sub>,v<sub>2</sub>,v<sub>3</sub>)使得v=v<sub>1</sub>a+v<sub>2</sub>b+v<sub>3</sub>c（1-1）。而对于一个点p，则可以找到一组坐标(p<sub>1</sub>,p<sub>2</sub>,p<sub>3</sub>)使得p - o = p<sub>1</sub>a + p<sub>2</sub>b + p<sub>3</sub>c（1-2）
-从上面对向量和点的表达，我们可以看出为了在坐标系中表示一个点我们可以把点的位置看作是对于这个基的原点o所进行的一个位移，即一个向量p - o，我们在表达这个向量的同时用等价的方式表达出了点p: p = o + p<sub>1</sub>a + p<sub>2</sub>b + p<sub>3</sub>c（1-3）。（1-1），（1-3）是坐标系下表达一个向量和点的不同表达方式。这里可以看出，虽然都是用代数分量的形式表达向量和点，但表达一个点比一个向量需要额外的信息。如果我写一个代数分量表达(1,4,7)，谁知道它是个向量还是一个点。我们现在把(1-1),(1-3)写成矩阵的形式：
+所谓齐次坐标系就是将一个原本是n维的向量用一个n+1维向量来表示。对于一个向量v以及基oabc，可以找到一组坐标(v1,v2,v3)使得v=v1a+v2b+v3c（1-1）。而对于一个点p，则可以找到一组坐标(p1,p2,p3)使得p - o = p1a + p2b + p3c（1-2）
+从上面对向量和点的表达，我们可以看出为了在坐标系中表示一个点我们可以把点的位置看作是对于这个基的原点o所进行的一个位移，即一个向量p - o，我们在表达这个向量的同时用等价的方式表达出了点p: p = o + p1a + p2b + p3c（1-3）。（1-1），（1-3）是坐标系下表达一个向量和点的不同表达方式。这里可以看出，虽然都是用代数分量的形式表达向量和点，但表达一个点比一个向量需要额外的信息。如果我写一个代数分量表达(1,4,7)，谁知道它是个向量还是一个点。我们现在把(1-1),(1-3)写成矩阵的形式：
 
-![(1-4)](http://latex.codecogs.com/gif.latex?v=(v_{1},v_{2},v_{3},0)\begin{pmatrix}&space;a&space;\\&space;b&space;\\&space;c&space;\\&space;o&space;\end{pmatrix})
+![(1-4)](http://latex.codecogs.com/gif.latex?v=(v_%7B1%7D,v_%7B2%7D,v_%7B3%7D,0)%5Cbegin%7Bpmatrix%7D&space;a&space;%5C%5C&space;b&space;%5C%5C&space;c&space;%5C%5C&space;o&space;%5Cend%7Bpmatrix%7D)
 
-![(1-5)](http://latex.codecogs.com/gif.latex?p=(p_{1},p_{2},p_{3},1)\begin{pmatrix}&space;a&space;\\&space;b&space;\\&space;c&space;\\&space;o&space;\end{pmatrix})
+![(1-5)](http://latex.codecogs.com/gif.latex?p=(p_%7B1%7D,p_%7B2%7D,p_%7B3%7D,1)%5Cbegin%7Bpmatrix%7D&space;a&space;%5C%5C&space;b&space;%5C%5C&space;c&space;%5C%5C&space;o&space;%5Cend%7Bpmatrix%7D)
 
 这里(a b c o)是坐标基矩阵，左边的行向量分别是向量v和点p在基下的坐标。这样，向量和点再同一个基下就有了不同的表达：三维向量的第四个代数分量是0，而三维点的第四个代数分量是1。像这种用四个代数分量表示三维几何概念的方式是一种**齐次坐标**表示。这样，上面的(1,4,7)如果写成(1,4,7,0)，它就是个向量；如果是(1,4,7,1)它就是个点。
 由于齐次坐标使用了4个分量来表达3D概念或者说用了3个分量来表达2D概念，从而使得放射变换可以使用矩阵进行。
@@ -18,13 +18,13 @@
 如果有一种法则T，对平面点集中的每个点A，都对应平面上唯一的一个点T(A)，则T称为平面上的一个变换，T(A)称为A的像。变换是函数概念的自然推广。
 平面上的图形由点组成，因而平面上的变换T会将一个图形C变到另一个图形T(C)，T(C)称为C的像。从这个意义上说，可以称T为几何变换。例如对图形作平移变换、旋转变换、缩放变换、对称变换等都是几何变换。
 在平面直角坐标系中，点A由坐标(x,y)表示。在变换T下，点A(x,y)的像为A'(x',y')，其中x'和y'都是x,y的函数：
-x' = f<sub>1</sub>(x,y), y' = f<sub>2</sub>(x,y)
-因此，函数f<sub>1</sub>，f<sub>2</sub>能够确定一个平面上的变换T。如果能够从方程组中反解出x和y:
-x = g<sub>1</sub>(x', y'), y = g<sub>2</sub>(x', y')
-则由函数g<sub>1</sub>,g<sub>2</sub>确定了T的逆变换，记为T<sup>-1</sup>。设平面曲线C的参数方程为：
+x' = f1(x,y), y' = f2(x,y)
+因此，函数f1，f2能够确定一个平面上的变换T。如果能够从方程组中反解出x和y:
+x = g1(x', y'), y = g2(x', y')
+则由函数g1,g2确定了T的逆变换，记为T<sup>-1</sup>。设平面曲线C的参数方程为：
 x = x(t), y = y(t), t∈D
 其中D是函数x(t),y(t)的定义域，则曲线C在变换T下的像T(C)的参数方程为
-x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
+x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 ## 平面几何变换及其矩阵表示
 
@@ -32,7 +32,7 @@ x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
 
 #### 1、平移变换
 
-平移变换是将图形中的每一个点从一个位置(x,y)移动到另一个位置(x',y')的变换，t<sub>x</sub>，t<sub>y</sub>称为平移距离，则平移变换公式为：
+平移变换是将图形中的每一个点从一个位置(x,y)移动到另一个位置(x',y')的变换，tx，ty称为平移距离，则平移变换公式为：
 
 ![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;x&space;&plus;&space;t_{x}\\&space;y'&space;=&space;y&space;&plus;&space;t_{y}&space;\end{matrix}\right.)
 
@@ -42,7 +42,7 @@ x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
 
 旋转变换是以某个参考点为圆心，将图像上的各点(x,y)围绕圆心转动一个逆时针角度θ，变为新的坐标(x',y')的变换。当参考点为(0,0)时，旋转变换的公式为：
 
-![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}&space;x'&space;=&space;r&space;cos(\alpha&space;&plus;&space;\theta)&space;=&space;r&space;cos\alpha&space;cos\theta&space;-&space;r&space;sin\alpha&space;sin\theta\\&space;y'&space;=&space;r&space;sin(\alpha&space;&plus;&space;\theta)&space;=&space;r&space;sin\alpha&space;cos\theta&space;&plus;&space;r&space;cos\alpha&space;sin\theta&space;\end{matrix}\right.)
+![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D&space;x%27&space;=&space;r&space;cos(%5Calpha&space;&plus;&space;%5Ctheta)&space;=&space;r&space;cos%5Calpha&space;cos%5Ctheta&space;-&space;r&space;sin%5Calpha&space;sin%5Ctheta%5C%5C&space;y%27&space;=&space;r&space;sin(%5Calpha&space;&plus;&space;%5Ctheta)&space;=&space;r&space;sin%5Calpha&space;cos%5Ctheta&space;&plus;&space;r&space;cos%5Calpha&space;sin%5Ctheta&space;%5Cend%7Bmatrix%7D%5Cright.)
 
 由于：
 
@@ -56,7 +56,7 @@ x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
 
 #### 3、比例变换
 
-比例变换是使对象按比例因子(s<sub>x</sub>,s<sub>y</sub>)放大或缩小的变换
+比例变换是使对象按比例因子(sx,sy)放大或缩小的变换
 
 ![](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%3Dxs_%7Bx%7D%5C%5C%20y%27%3Dys_%7By%7D%20%5Cend%7Bmatrix%7D%5Cright.)
 
@@ -64,11 +64,11 @@ x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
 
 ### 平面图形几何变换的矩阵表示
 
-二维图形的几何变换实现可以用矩阵T<sub>2D</sub>表示
+二维图形的几何变换实现可以用矩阵T2D表示
 
 ![](http://latex.codecogs.com/gif.latex?T_%7B2D%7D%3D%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%26%20g%20%5C%5C%20b%20%26%20e%20%26%20h%20%5C%5C%20c%20%26%20f%20%26%20i%20%5Cend%7Bbmatrix%7D)
 
-从变换功能上可以把T<sub>2D</sub>分为四个子矩阵。其中
+从变换功能上可以把T2D分为四个子矩阵。其中
 
 ![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%5C%5C%20b%20%26%20e%20%5C%5C%20%5Cend%7Bbmatrix%7D)
 
@@ -88,7 +88,7 @@ x = f<sub>1</sub>(x(t),y(t)), y = f<sub>2</sub>(x(t), y(t)), t∈D
 
 ![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx%7D%20%26%20t_%7By%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
 
-t<sub>x</sub>,t<sub>y</sub>分别表示x轴方向和y轴方向的平移距离。
+tx,ty分别表示x轴方向和y轴方向的平移距离。
 
 ####2、旋转变换矩阵表示
 
@@ -121,15 +121,15 @@ t<sub>x</sub>,t<sub>y</sub>分别表示x轴方向和y轴方向的平移距离。
 
 ####5、复合变换
 
-一个比较复杂的变换要连续进行若干个基本变换才能完成。例如围绕任意点(x<sub>f</sub>, y<sub>f</sub>)的旋转，需要通过3个基本变换T(x<sub>f</sub>, y<sub>f</sub>)，R(θ)，T(x<sub>f</sub>, y<sub>f</sub>)才能完成。这些由基本变换构成的连续变换序列称为复合变换。
+一个比较复杂的变换要连续进行若干个基本变换才能完成。例如围绕任意点(xf, yf)的旋转，需要通过3个基本变换T(xf, yf)，R(θ)，T(xf, yf)才能完成。这些由基本变换构成的连续变换序列称为复合变换。
 变换的矩阵形式使得复合变换的计算工作量大为减少。以绕任意点旋转为例，本应进行如下3次变换，分别是
 
-* p' = pT(-x<sub>f</sub>, -y<sub>f</sub>) 将原点移动到任意点位置
+* p' = pT(-xf, -yf) 将原点移动到任意点位置
 * p'' = p'R(θ) 旋转
-* p = p''T(x<sub>f</sub>, y<sub>f</sub>) 将原点归位
+* p = p''T(xf, yf) 将原点归位
 
-合并之后为p = pT(-x<sub>f</sub>, -y<sub>f</sub>)R(θ)T(x<sub>f</sub>, y<sub>f</sub>)
-令T<sub>c</sub> = T(-x<sub>f</sub>, -y<sub>f</sub>)R(θ)T(x<sub>f</sub>, y<sub>f</sub>)则有p = pT<sub>c</sub>，T<sub>c</sub>称为复合变换矩阵。由上面推到可知在计算复合变换时，首先可将各基本变换矩阵按次序想乘，形成总的复合变换矩阵T<sub>c</sub>然后，坐标只需与T<sub>c</sub>想乘一次，便可同时完成一连串基本变换。因此采用复合变换矩阵可以大大节省坐标乘法所耗费的运算时间。下面我们看几个基本的复合变换：
+合并之后为p = pT(-xf, -yf)R(θ)T(xf, yf)
+令Tc = T(-xf, -yf)R(θ)T(xf, yf)则有p = pTc，Tc称为复合变换矩阵。由上面推到可知在计算复合变换时，首先可将各基本变换矩阵按次序想乘，形成总的复合变换矩阵Tc然后，坐标只需与Tc想乘一次，便可同时完成一连串基本变换。因此采用复合变换矩阵可以大大节省坐标乘法所耗费的运算时间。下面我们看几个基本的复合变换：
 复合平移：
 对同一图形做两次平移相当于将两次平移相加起来，即
 
@@ -145,7 +145,7 @@ t<sub>x</sub>,t<sub>y</sub>分别表示x轴方向和y轴方向的平移距离。
 
 ![](http://latex.codecogs.com/gif.latex?R%28%5Ctheta_%7B1%7D%29R%28%5Ctheta_%7B2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta_%7B1%7D%20%26%20sin%5Ctheta_%7B1%7D%20%26%200%5C%5C%20-sin%5Ctheta_%7B1%7D%20%26%20cos%5Ctheta_%7B1%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta_%7B2%7D%20%26%20sin%5Ctheta_%7B2%7D%20%26%200%5C%5C%20-sin%5Ctheta_%7B2%7D%20%26%20cos%5Ctheta_%7B2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20cos%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%20sin%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%200%5C%5C%20-sin%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%20cos%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
 
-缩放、旋转变换都与参考点有关，上面进行的各种缩放、旋转变换都是以原点为参考点的。如果相对某个一般的参考点(x<sub>f</sub>,y<sub>f</sub>)作缩放、旋转变换，相当于将该点移到坐标原点处，然后进行缩放、旋转变换，最后将(x<sub>f</sub>,y<sub>f</sub>)点移回原来的位置。如关于(x<sub>f</sub>,y<sub>f</sub>)的缩放变换为：
+缩放、旋转变换都与参考点有关，上面进行的各种缩放、旋转变换都是以原点为参考点的。如果相对某个一般的参考点(xf,yf)作缩放、旋转变换，相当于将该点移到坐标原点处，然后进行缩放、旋转变换，最后将(xf,yf)点移回原来的位置。如关于(xf,yf)的缩放变换为：
 
 ![](http://latex.codecogs.com/gif.latex?S%28x_%7Bf%7D%2Cy_%7Bf%7D%2Cs_%7Bx%7D%2Cs_%7By%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7Bf%7D%20%26%20-y_%7Bf%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7Bf%7D%20%26%20y_%7Bf%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%20x_%7Bf%7D%281%20-%20s_%7Bx%7D%29%20%26%20y_%7Bf%7D%281%20-%20s_%7By%7D%29%20%26%201%20%5Cend%7Bbmatrix%7D)
 
@@ -192,11 +192,11 @@ anchorPoint值的修改不只会调整原点位置，同时也会修改View的fr
 
 ![Transform修改](https://upload-images.jianshu.io/upload_images/3018197-babc4fede5530710.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-见上图以旋转变换为例，旋转变换会让原有图形的frame从白色框变为虚线框，我们假设原有View的四个点为p<sub>0</sub> p<sub>1</sub> p<sub>2</sub> p<sub>3</sub> 则旋转变换之后的点为：
-p<sub>0</sub>' = p<sub>0</sub>T(θ)
-p<sub>1</sub>' = p<sub>1</sub>T(θ)
-p<sub>2</sub>' = p<sub>2</sub>T(θ)
-p<sub>3</sub>' = p<sub>3</sub>T(θ)
+见上图以旋转变换为例，旋转变换会让原有图形的frame从白色框变为虚线框，我们假设原有View的四个点为p0 p1 p2 p3 则旋转变换之后的点为：
+p0' = p0T(θ)
+p1' = p1T(θ)
+p2' = p2T(θ)
+p3' = p3T(θ)
 则frame = (x',y',w',h')
 
 ![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20min%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%5C%5C%20y%27%20%3D%20min%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%5C%5C%20w%27%20%3D%20max%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%20-%20min%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%5C%5C%20h%27%20%3D%20max%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%20-%20min%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%20%5C%5C%20%5Cend%7Bmatrix%7D%5Cright.)
