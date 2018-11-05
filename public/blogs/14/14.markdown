@@ -6,9 +6,9 @@
 所谓齐次坐标系就是将一个原本是n维的向量用一个n+1维向量来表示。对于一个向量v以及基oabc，可以找到一组坐标(v1,v2,v3)使得v=v1a+v2b+v3c（1-1）。而对于一个点p，则可以找到一组坐标(p1,p2,p3)使得p - o = p1a + p2b + p3c（1-2）
 从上面对向量和点的表达，我们可以看出为了在坐标系中表示一个点我们可以把点的位置看作是对于这个基的原点o所进行的一个位移，即一个向量p - o，我们在表达这个向量的同时用等价的方式表达出了点p: p = o + p1a + p2b + p3c（1-3）。（1-1），（1-3）是坐标系下表达一个向量和点的不同表达方式。这里可以看出，虽然都是用代数分量的形式表达向量和点，但表达一个点比一个向量需要额外的信息。如果我写一个代数分量表达(1,4,7)，谁知道它是个向量还是一个点。我们现在把(1-1),(1-3)写成矩阵的形式：
 
-![(1-4)](http://latex.codecogs.com/gif.latex?v%3D%28v_%7B1%7D%2Cv_%7B2%7D%2Cv_%7B3%7D%2C0%29%5Cbegin%7Bpmatrix%7D%26%20a%20%26%20%5C%5C%26%20b%26%20%5C%5C%26%20c%26%20%5C%5C%26%20o%26%20%5Cend%7Bpmatrix%7D)
+![1-4](https://upload-images.jianshu.io/upload_images/3018197-58cf5c872708c091.gif?imageMogr2/auto-orient/strip)
 
-![(1-5)](http://latex.codecogs.com/gif.latex?p%3D%28p_%7B1%7D%2Cp_%7B2%7D%2Cp_%7B3%7D%2C1%29%5Cbegin%7Bpmatrix%7D%26%20a%26%20%5C%5C%26%20b%26%20%5C%5C%26%20c%26%20%5C%5C%26%20o%26%20%5Cend%7Bpmatrix%7D)
+![1-5](https://upload-images.jianshu.io/upload_images/3018197-ed21cd1b6bc438b5.gif?imageMogr2/auto-orient/strip)
 
 这里(a b c o)是坐标基矩阵，左边的行向量分别是向量v和点p在基下的坐标。这样，向量和点再同一个基下就有了不同的表达：三维向量的第四个代数分量是0，而三维点的第四个代数分量是1。像这种用四个代数分量表示三维几何概念的方式是一种**齐次坐标**表示。这样，上面的(1,4,7)如果写成(1,4,7,0)，它就是个向量；如果是(1,4,7,1)它就是个点。
 由于齐次坐标使用了4个分量来表达3D概念或者说用了3个分量来表达2D概念，从而使得放射变换可以使用矩阵进行。
@@ -34,7 +34,7 @@ x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 平移变换是将图形中的每一个点从一个位置(x,y)移动到另一个位置(x',y')的变换，tx，ty称为平移距离，则平移变换公式为：
 
-![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}& x'& =& x& &plus;& t_{x}\\& y'& =& y& &plus;& t_{y}& \end{matrix}\right.)
+![](http://upload-images.jianshu.io/upload_images/3018197-07d4c478d37f9888?imageMogr2/auto-orient/strip)
 
 ![平移变换](https://upload-images.jianshu.io/upload_images/3018197-5271eecca181a2d7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
@@ -42,15 +42,15 @@ x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 旋转变换是以某个参考点为圆心，将图像上的各点(x,y)围绕圆心转动一个逆时针角度θ，变为新的坐标(x',y')的变换。当参考点为(0,0)时，旋转变换的公式为：
 
-![](![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20rcos%28%5Calpha%20&plus;%20%5Ctheta%29%20%3D%20r%20cos%5Calpha%20cos%5Ctheta%20-%20r%20sin%5Calpha%20sin%5Ctheta%5C%5C%20y%27%20%3D%20rsin%28%5Calpha%20&plus;%5Ctheta%29%20%3D%20r%20sin%5Calpha%20cos%5Ctheta%20&plus;%20r%20cos%5Calpha%20sin%5Ctheta%20%5Cend%7Bmatrix%7D%5Cright.))
+![](http://upload-images.jianshu.io/upload_images/3018197-a7b96a9df16c14c7?imageMogr2/auto-orient/strip)
 
 由于：
 
-![](http://latex.codecogs.com/gif.latex?x& =& r& cos\alpha,& y& =& r& sin\alpha)
+![](https://upload-images.jianshu.io/upload_images/3018197-78c2ad3f7c71b1de.gif?imageMogr2/auto-orient/strip)
 
 所以可化简为：
 
-![](http://latex.codecogs.com/gif.latex?\left\{\begin{matrix}& x'& =& x& cos\theta& -& y& sin\alpha\\& y'& =& y& cos\theta& &plus;& x& sin\alpha& \end{matrix}\right.)
+![](http://upload-images.jianshu.io/upload_images/3018197-3686bd79cc7c3f4e?imageMogr2/auto-orient/strip)
 
 ![旋转变换](https://upload-images.jianshu.io/upload_images/3018197-ad5eac2129d80ca7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
@@ -58,27 +58,25 @@ x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 比例变换是使对象按比例因子(sx,sy)放大或缩小的变换
 
-![](http://latex.codecogs.com/gif.latex?%5Cinline%20%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%3Dxs_%7Bx%7D%5C%5C%20y%27%3Dys_%7By%7D%20%5Cend%7Bmatrix%7D%5Cright.)
+![](http://upload-images.jianshu.io/upload_images/3018197-1d4822ebbcea9196?imageMogr2/auto-orient/strip)
 
 ![比例变换](https://upload-images.jianshu.io/upload_images/3018197-799d99b200e8b5c7.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ### 平面图形几何变换的矩阵表示
 
-二维图形的几何变换实现可以用矩阵T2D表示
-
-![](http://latex.codecogs.com/gif.latex?T_%7B2D%7D%3D%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%26%20g%20%5C%5C%20b%20%26%20e%20%26%20h%20%5C%5C%20c%20%26%20f%20%26%20i%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-73ef9d21054bf7f5.gif?imageMogr2/auto-orient/strip)
 
 从变换功能上可以把T2D分为四个子矩阵。其中
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%5C%5C%20b%20%26%20e%20%5C%5C%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-296deda05fc3b4a1.gif?imageMogr2/auto-orient/strip)
 
 是对图形的缩放、旋转、对称、错切等变换；
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20c%20%26%20f%20%5Cend%7Bpmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-137f78954061d6a8.gif?imageMogr2/auto-orient/strip)
 
 是对图形进行平移变换；
 
-![](http://latex.codecogs.com/gif.latex?%5Cbinom%7Bg%7D%7Bh%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-10af8f3167ad8f42.gif?imageMogr2/auto-orient/strip)
 
 是对图形作投影变换，g的作用是在x轴的1/g处产生一个灭点，而h的作用是在y轴的1/h处产生一个灭点；i是对整个图形做伸缩变换。平移变换、旋转变换、比例变换、错切变换这4中基本变换都可以表示为3x3的变换矩阵和齐次坐标相乘的形式
 
@@ -86,7 +84,7 @@ x = f1(x(t),y(t)), y = f2(x(t), y(t)), t∈D
 
 平移变换的矩阵表示为
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx%7D%20%26%20t_%7By%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-f5a20ec517a4187a.gif?imageMogr2/auto-orient/strip)
 
 tx,ty分别表示x轴方向和y轴方向的平移距离。
 
@@ -94,7 +92,7 @@ tx,ty分别表示x轴方向和y轴方向的平移距离。
 
 旋转变换的矩阵表示为
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta%20%26%20sin%5Ctheta%20%26%200%5C%5C%20-sin%5Ctheta%20%26%20cos%5Ctheta%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-0516d7b38b0cfc07.gif?imageMogr2/auto-orient/strip)
 
 逆时针旋转时θ取正值，顺时针旋转时θ取负值
 
@@ -102,7 +100,7 @@ tx,ty分别表示x轴方向和y轴方向的平移距离。
 
 比例变换的矩阵表示为
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%20a%20%26%20d%20%26%200%5C%5C%20b%20%26%20e%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-1144333d19e84a93.gif?imageMogr2/auto-orient/strip)
 
 * 当b=d=0时，a和e的取值决定了缩放效果，a和e>1放大，<1缩小
 * 当b=d=0,a=-1,e=1时有x'=-x,y'=y产生与y轴对称的图形
@@ -115,7 +113,8 @@ tx,ty分别表示x轴方向和y轴方向的平移距离。
 
 错切变换的矩阵表示为
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%3D%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%5Cbegin%7Bbmatrix%7D%201%20%26%20d%20%26%200%5C%5C%20b%20%26%201%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-9ce3c4b77c64c5cc.gif?imageMogr2/auto-orient/strip)
+
 
 其中当d = 0时，x' = x + by， y' = y，此时，图形的y坐标不变，x坐标随初值(x, y)及变换系数b作线性变化；当b = 0时，x' = x，y' = dx + y，此时，图形的x坐标不变，y坐标随初值(x, y)及变换系数d作线性变化。
 
@@ -133,26 +132,28 @@ tx,ty分别表示x轴方向和y轴方向的平移距离。
 复合平移：
 对同一图形做两次平移相当于将两次平移相加起来，即
 
-![](http://latex.codecogs.com/gif.latex?T%28t_%7Bx1%7D%2Ct_%7By1%7D%29T%28t_%7Bx2%7D%2Ct_%7By2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx1%7D%20%26%20t_%7By1%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx2%7D%20%26%20t_%7By2%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20t_%7Bx1%7D%20&plus;%20t_%7Bx2%7D%20%26%20t_%7By1%7D%20&plus;%20t_%7By2%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-8923e0012df84f77.gif?imageMogr2/auto-orient/strip)
 
 复合缩放：
 以原点为参考点对同一图形做两次连续的缩放相当于将缩放操作相乘，即:
 
-![](http://latex.codecogs.com/gif.latex?S%28s_%7Bx1%7D%2Cs_%7By1%7D%29S%28s_%7Bx2%7D%2Cs_%7By2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx1%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By1%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx2%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx1%7Ds_%7Bx2%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By1%7Ds_%7By2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-27945c791d8d46eb.gif?imageMogr2/auto-orient/strip)
 
 复合旋转：
 以原点为参考点对同一图形做两次连续的旋转相当于将两次的旋转角度相加， 即:
 
-![](http://latex.codecogs.com/gif.latex?R%28%5Ctheta_%7B1%7D%29R%28%5Ctheta_%7B2%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta_%7B1%7D%20%26%20sin%5Ctheta_%7B1%7D%20%26%200%5C%5C%20-sin%5Ctheta_%7B1%7D%20%26%20cos%5Ctheta_%7B1%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta_%7B2%7D%20%26%20sin%5Ctheta_%7B2%7D%20%26%200%5C%5C%20-sin%5Ctheta_%7B2%7D%20%26%20cos%5Ctheta_%7B2%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20cos%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%20sin%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%200%5C%5C%20-sin%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%20cos%28%5Ctheta_%7B1%7D%20&plus;%20%5Ctheta_%7B2%7D%29%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-e2bd9623c73432df.gif?imageMogr2/auto-orient/strip)
+
 
 缩放、旋转变换都与参考点有关，上面进行的各种缩放、旋转变换都是以原点为参考点的。如果相对某个一般的参考点(xf,yf)作缩放、旋转变换，相当于将该点移到坐标原点处，然后进行缩放、旋转变换，最后将(xf,yf)点移回原来的位置。如关于(xf,yf)的缩放变换为：
 
-![](http://latex.codecogs.com/gif.latex?S%28x_%7Bf%7D%2Cy_%7Bf%7D%2Cs_%7Bx%7D%2Cs_%7By%7D%29%20%3D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7Bf%7D%20%26%20-y_%7Bf%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7Bf%7D%20%26%20y_%7Bf%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%3D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%20x_%7Bf%7D%281%20-%20s_%7Bx%7D%29%20%26%20y_%7Bf%7D%281%20-%20s_%7By%7D%29%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-9021084c2d405cb7.gif?imageMogr2/auto-orient/strip)
 
 各种复杂的变换无非是一些基本变换的组合，利用数学方法也就是矩阵的 乘法来解决复合变换问题，关键是将其分解为一定顺序的基本变换，然后逐一 进行这些基本变换;或者求出这些基本变换矩阵连乘积，即求出复合变换矩阵， 从而使复合变化问题得到解决。
 
 写了这么多只是想把平面仿射变换的基本原理描述清楚，以便能对UIView.transform有更深入的理解。
 接下来我们进入正题
+
 
 ## UIView外部坐标系
 
@@ -165,7 +166,7 @@ tx,ty分别表示x轴方向和y轴方向的平移距离。
 * 设置View的frame和center会改变其位置和大小，同时会改变View的bounds，bounds是View相对于自身的尺寸bounds=(0,0,view.width,view.height)
 * 设置完成frame或者center之后可以通过调整bounds重新设置frame，如果frame = (x,y,w,h) 重新设置bounds = (0,0,w',h')则新的frame=(x',y',w',h')
 
-![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20%28w-w%27%29/2%20&plus;%20x%5C%5C%20y%27%20%3D%20%28h-h%27%29/2%20&plus;%20y%20%5Cend%7Bmatrix%7D%5Cright.)
+![](http://upload-images.jianshu.io/upload_images/3018197-c4fcf41b4ab3b06f?imageMogr2/auto-orient/strip)
 
 * 当然如果在设置完bounds之后再设置frame则bounds会被重置为(0,0,view.width,view.height)
 
@@ -183,7 +184,7 @@ UIView除了刚刚我们说的外部坐标系，还有一个内部坐标系。
 参考上图通过调整anchorPoint的值可以修改内部坐标系的原点位置，设置(0,0)可以把原点移动到View的左上角，设置(1,1)可以把原点移动到右下角，设置(0.5, 0.5)可以把原点移动到View中心。当然anchorPoint的值也不限制在[0,1]，可以推广到任意浮点值，相应的调整规则类似，比如设置为(-1,-1)则可以把原点移动到左上角再向左上偏移一个View的位置。
 anchorPoint值的修改不只会调整原点位置，同时也会修改View的frame，修改规则如下：
 
-![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20x%20&plus;%20w.%280%20-%20x_%7Banchor%7D%29%5C%5C%20y%27%20%3D%20y%20&plus;%20h.%280%20-%20y_%7Banchor%7D%29%20%5Cend%7Bmatrix%7D%5Cright.)
+![](http://upload-images.jianshu.io/upload_images/3018197-50b0dc42267f5fa2?imageMogr2/auto-orient/strip)
 
 基于View的transform可以进行仿射变换，所有的变化都是基于原点位置进行的，因此anchorPoint的设置可以产生更多有意思的效果，
 后续我们一个个看
@@ -199,7 +200,7 @@ p2' = p2T(θ)
 p3' = p3T(θ)
 则frame = (x',y',w',h')
 
-![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20min%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%5C%5C%20y%27%20%3D%20min%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%5C%5C%20w%27%20%3D%20max%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%20-%20min%28p_%7B0x%7D%27%2C%20p_%7B1x%7D%27%2C%20p_%7B2x%7D%27%2C%20p_%7B3x%7D%27%29%5C%5C%20h%27%20%3D%20max%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%20-%20min%28p_%7B0y%7D%27%2C%20p_%7B1y%7D%27%2C%20p_%7B2y%7D%27%2C%20p_%7B3y%7D%27%29%20%5C%5C%20%5Cend%7Bmatrix%7D%5Cright.)
+![](http://upload-images.jianshu.io/upload_images/3018197-d1a6359bbf258a6e?imageMogr2/auto-orient/strip)
 
 ## UIView内部坐标系和外部坐标系的联系
 
@@ -404,11 +405,11 @@ extension CanvasContentView: UIGestureRecognizerDelegate {
 分析一下看一下哪种方案更合适，如果调整anchorPoint必然会引起frame的改变，也就是center位置的变化，需要在anchorPoint调整之后恢复center的位置，另外如果View在初始状态是比较容易通过旋转中心点的坐标推算出anchorPoint的新位置，但是一旦View发生了旋转就很难再计算出新的anchorPoint的位置。而方案2只需要计算出旋转过程中View中心点的位置变化即可。
 根据之前的理论知识坐标系中的一个点绕另一个点的旋转变换可以表示为：
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%20%3D%20%28x%2C%20y%2C%201%29%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7B0%7D%20%26%20-y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20cos%5Ctheta%20%26%20sin%5Ctheta%20%26%200%5C%5C%20-sin%5Ctheta%20%26%20cos%5Ctheta%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7B0%7D%20%26%20y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-efbf0049ba83ace8.gif?imageMogr2/auto-orient/strip)
 
 化简之后为：
 
-![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20%28x%20-%20x_%7B0%7D%29cos%5Ctheta%20-%20%28y%20-%20y%7B0%7D%29sin%5Ctheta%20&plus;%20x_%7B0%7D%5C%5C%20%5C%5C%20x%27%20%3D%20%28y%20-%20y_%7B0%7D%29cos%5Ctheta%20&plus;%20%28x%20-%20x%7B0%7D%29sin%5Ctheta%20&plus;%20y_%7B0%7D%5C%5C%20%5Cend%7Bmatrix%7D%5Cright.)
+![](http://upload-images.jianshu.io/upload_images/3018197-d9fd8b3fed076f16?imageMogr2/auto-orient/strip)
 
 看一下部分代码实现：
 
@@ -436,11 +437,11 @@ private func rotateAt(center: CGPoint, rotation: CGFloat) {
 跟旋转类似以固定点为中心的缩放依然可以选择两种方案，我们依然以选择第二中方案，先把中心点移动到目标位置然后进行缩放
 变换矩阵表示为：
 
-![](http://latex.codecogs.com/gif.latex?%5Cbegin%7Bpmatrix%7D%20x%27%20%26%20y%27%20%26%201%20%5Cend%7Bpmatrix%7D%20%3D%20%5Cbegin%7Bpmatrix%7D%20x%20%26%20y%20%26%201%20%5Cend%7Bpmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20-x_%7B0%7D%20%26%20-y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%20s_%7Bx%7D%20%26%200%20%26%200%5C%5C%200%20%26%20s_%7By%7D%20%26%200%5C%5C%200%20%26%200%20%26%201%20%5Cend%7Bbmatrix%7D%20%5Cbegin%7Bbmatrix%7D%201%20%26%200%20%26%200%5C%5C%200%20%26%201%20%26%200%5C%5C%20x_%7B0%7D%20%26%20y_%7B0%7D%20%26%201%20%5Cend%7Bbmatrix%7D)
+![](https://upload-images.jianshu.io/upload_images/3018197-06691563ce509440.gif?imageMogr2/auto-orient/strip)
 
 化简为：
 
-![](http://latex.codecogs.com/gif.latex?%5Cleft%5C%7B%5Cbegin%7Bmatrix%7D%20x%27%20%3D%20s_%7Bx%7D%28x%20-%20x_%7B0%7D%29%20&plus;%20x_%7B0%7D%5C%5C%20y%27%20%3D%20s_%7By%7D%28y%20-%20y_%7B0%7D%29%20&plus;y_%7B0%7D%20%5Cend%7Bmatrix%7D%5Cright.)
+![](http://upload-images.jianshu.io/upload_images/3018197-b069ff082ac03f35?imageMogr2/auto-orient/strip)
 看一下部分代码
 
 ```
