@@ -58,8 +58,7 @@
             "/api/static/images/knbrush/previews/preview0.jpg",
             "/api/static/images/knbrush/previews/preview1.jpg",
             "/api/static/images/knbrush/previews/preview2.jpg",
-            "/api/static/images/knbrush/previews/preview3.jpg",
-            "/api/static/images/knbrush/previews/preview4.jpg"
+            "/api/static/images/knbrush/previews/preview3.jpg"
         ],
         "works": [
             "/api/static/images/knbrush/works/works0.jpg",
@@ -70,7 +69,9 @@
             "/api/static/images/knbrush/works/works5.jpg",
             "/api/static/images/knbrush/works/works6.jpg",
             "/api/static/images/knbrush/works/works7.jpg",
-            "/api/static/images/knbrush/works/works8.jpg"
+            "/api/static/images/knbrush/works/works8.jpg",
+            "/api/static/images/knbrush/works/works9.jpg",
+            "/api/static/images/knbrush/works/works10.jpg"
         ]
     }
 }
